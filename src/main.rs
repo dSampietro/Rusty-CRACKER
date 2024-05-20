@@ -1,4 +1,4 @@
-use std::{cmp::min, collections::HashMap};
+use std::{cmp::min, collections::HashMap, env};
 use petgraph::{ graph::{DiGraph, NodeIndex, UnGraph}, Direction::Outgoing, EdgeType, Graph};
 
 fn get_neighborhood<V, E, Type>(g: &Graph<V, E, Type>) -> HashMap<NodeIndex, Vec<NodeIndex>> where Type: EdgeType {
@@ -34,7 +34,9 @@ fn get_vmins(neighborhoods: &HashMap<NodeIndex, Vec<NodeIndex>>) -> HashMap<Node
 }
 
 //TODO: generalize edges
-fn min_selection<N: Copy>(g: &UnGraph<N, ()>) -> DiGraph<N, ()> {
+fn min_selection<N: Copy + std::fmt::Debug>(g: &UnGraph<N, ()>) -> DiGraph<N, ()> {
+    println!("{:?}", g);
+
     let neighborhoods: HashMap<NodeIndex, Vec<NodeIndex>> = get_neighborhood(&g);
     let v_mins: HashMap<NodeIndex, NodeIndex> = get_vmins(&neighborhoods);
 
@@ -78,7 +80,7 @@ fn get_outgoing_neighborhood<N>(h: &DiGraph<N, ()>) -> HashMap<NodeIndex, Vec<No
 }
 
 
-fn prune<N: std::fmt::Debug + Copy>(h: DiGraph<N, ()>, mut T: DiGraph<N, ()>) -> (UnGraph<N, ()>, DiGraph<N, ()>) {
+fn prune<N: Copy>(h: DiGraph<N, ()>, mut tree: DiGraph<N, ()>) -> (UnGraph<N, ()>, DiGraph<N, ()>) {
     
     //get outgoing neighborhoods
     let outgoing_neighborhoods: HashMap<NodeIndex, Vec<NodeIndex>> = get_outgoing_neighborhood(&h);
@@ -107,7 +109,7 @@ fn prune<N: std::fmt::Debug + Copy>(h: DiGraph<N, ()>, mut T: DiGraph<N, ()>) ->
         //TODO: 3rd case (self-loop??)
         if !neighbors.contains(u) {
             let v_min = *min_outgoing_neighborhoods.get(&u).unwrap();
-            T.add_edge(v_min, *u, ());
+            tree.add_edge(v_min, *u, ());
             deactivated_nodes.push(*u);
         }
     }
@@ -115,32 +117,45 @@ fn prune<N: std::fmt::Debug + Copy>(h: DiGraph<N, ()>, mut T: DiGraph<N, ()>) ->
     deactivated_nodes.sort();
     deactivated_nodes.reverse();
 
-    println!("g2: {:?}", g2);
+    //println!("g2: {:?}", g2);
 
     for deactivated in deactivated_nodes{
         g2.remove_node(deactivated);
     }
 
-    return (g2, T);
+    return (g2, tree);
 }
 
 
 fn main() {
+    env::set_var("RUST_BACKTRACE", "1");
+    
     let edges = [(0, 1), (1, 2), (2, 4), (2, 5), (3, 4), (3, 6), (3, 7), (5, 8), (7, 8)];
-    let g = UnGraph::<(), ()>::from_edges(&edges);
+    let graph = UnGraph::<(), ()>::from_edges(&edges);
 
-    let mut T = DiGraph::<(), ()>::new();
-    for _ in g.node_indices(){
-        T.add_node(());
+    let mut tree = DiGraph::<(), ()>::new();
+    for _ in graph.node_indices(){
+        tree.add_node(());
     }
 
-    //min selection
-    let h = min_selection(&g);
-    //println!("{:?}", h);
+    let mut g = graph.clone();
+    let mut t = tree.clone();
+    loop {   
+        //min selection
+        let h = min_selection(&g);
+        //println!("{:?}", h);
+        
+        //pruning
+        let (g2, tree) = prune(h, t);
+        
+        g = g2;//.clone();
+        t = tree;//.clone();
 
+        if g.edge_count() == 0 {    
+            break
+        }
+    }
 
-    //pruning
-    let (g2, t) = prune(h, T);
-    println!("pruned g2: {:?}", g2);
+    println!("pruned g2: {:?}", g);
     println!("T: {:?}", t);
 }
