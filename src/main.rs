@@ -1,5 +1,5 @@
 use std::env;
-use petgraph::{dot::{Config, Dot}, graphmap::{DiGraphMap, UnGraphMap}, visit::IntoEdges};
+use petgraph::graphmap::{DiGraphMap, UnGraphMap};
 
 mod graphmap_utils;
 use graphmap_utils::{min_selection, prune};

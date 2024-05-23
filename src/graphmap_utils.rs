@@ -3,18 +3,14 @@
 use std::{collections::HashMap, fmt::Debug, hash::Hash};
 use petgraph::{ graphmap::{DiGraphMap, GraphMap, NodeTrait, UnGraphMap}, Direction::Outgoing, EdgeType};
 
-/// Find the neighborhood of node NodeIndex
-fn get_node_neighborhood<V: NodeTrait, E, Type: EdgeType>(g: &GraphMap<V, E, Type>, node:V) -> Vec<V>{
-    return g.neighbors(node).collect();
-}
-
 /// Get the neighborhood (plus itself) of every node
 pub fn get_neighborhood<V: NodeTrait, E, Type: EdgeType>(g: &GraphMap<V, E, Type>) -> HashMap<V, Vec<V>> {
     let nodes: Vec<V> = g.nodes().collect();
 
     let neigh: HashMap<V, Vec<V>> = nodes.iter()
         .map(|&node| {
-            let neighbors: Vec<V> = g.neighbors(node).collect();
+            let mut neighbors: Vec<V> = g.neighbors(node).collect();
+            neighbors.push(node);
             (node, neighbors)
         })
         .collect();
@@ -57,16 +53,7 @@ pub fn min_selection<N: Ord + Eq + Copy + std::fmt::Debug + Hash>(g: &UnGraphMap
     let neighborhoods: HashMap<N, Vec<N>> = get_neighborhood(&g);
     println!("[Min Selection] neighborhoods: {:?}", neighborhoods);
 
-    let mut neigh_plus_self: HashMap<N, Vec<N>> = HashMap::new(); 
-    for (&node, v) in neighborhoods.iter(){
-        let mut new_vec = vec![node];
-        new_vec.extend(v);
-        neigh_plus_self.insert(node, new_vec);
-    }
-    println!("[Min Selection] neigh_plus_self: {:?}", neigh_plus_self);
-
-
-    let v_mins: HashMap<N, N> = get_vmins(&neigh_plus_self);
+    let v_mins: HashMap<N, N> = get_vmins(&neighborhoods);
     println!("[Min Selection] min neighborhoods: {:?}", v_mins);
 
     // create directed graph h
