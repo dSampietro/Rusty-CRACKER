@@ -26,9 +26,11 @@ where
 }
 
 /// Get the min neighbor of every node
-pub fn get_vmins<V: NodeTrait + Send + Sync + Copy>(neighborhoods: &DashMap<V, Vec<V>>) -> DashMap<V, V>{
-    
-    /*let v_mins: DashMap<V, V> = neighborhoods.into_iter()
+pub fn get_vmins<V: NodeTrait + Send + Sync + Copy>(neighborhoods: &DashMap<V, Vec<V>>) -> DashMap<V, V>
+{
+    let entries: Vec<_> = neighborhoods.iter().collect();
+
+    /*let v_mins: DashMap<V, V> = entries.iter()
         .filter_map(|(&node, neighbors)|{
             neighbors.into_iter()
                 .min()
@@ -36,13 +38,16 @@ pub fn get_vmins<V: NodeTrait + Send + Sync + Copy>(neighborhoods: &DashMap<V, V
         })
         .collect();*/
 
-    let v_mins: DashMap<V, V> = neighborhoods.into_iter()
-        .filter_map(|(&node, neighbors)|{
-            neighbors.into_iter()
-                .min()
-                .map(|&v_min| (node, v_min))
-        })
-        .collect();
+    let v_mins: DashMap<V, V> = DashMap::new();
+
+    // Use Rayon to find the minimum values in parallel
+    entries.par_iter().for_each(|entry| {
+        let (&key, vec) = entry.pair();
+        if let Some(&min_value) = vec.iter().min() {
+            let min_value = key.min(min_value);
+            v_mins.insert(key, min_value);
+        }
+    });
 
     return v_mins;
 }

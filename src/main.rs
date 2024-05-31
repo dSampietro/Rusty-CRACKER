@@ -6,24 +6,28 @@ use graphmap_utils::{min_selection, prune};
 
 mod input_util;
 use input_util::read_from_file;
-//mod graphmap_utils_par;
+
+mod graphmap_utils_par;
 //use graphmap_utils_par::*;
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
     
-    let filename = "files/example.mtx";
-    let edges_result = read_from_file(filename);
+    type V = u16;
+    
+    let filename = "files/bio-diseasome.mtx";
+    let edges_result = read_from_file::<V>(filename);
     if edges_result.is_err(){
         println!("{:?}", edges_result.err());
         return ;
     }
+    
     let edges = edges_result.unwrap_or(Vec::new());
     
     //let edges = [(0, 1), (1, 2), (2, 4), (2, 5), (3, 4), (3, 6), (3, 7), (5, 8), (7, 8), (9, 10)];
-    let graph: UnGraphMap<u8, ()> = UnGraphMap::from_edges(&edges);
+    let graph: UnGraphMap<V, ()> = UnGraphMap::from_edges(&edges);
 
-    let mut tree = DiGraphMap::<u8, ()>::new();
+    let mut tree = DiGraphMap::<V, ()>::new();
     for n in graph.nodes(){
         tree.add_node(n);
     }
@@ -58,7 +62,7 @@ fn main() {
     println!("pruned g2: {:?}", gt);
     println!("T: {:?}", t);
 
-
+    /*
     //println!("{:?}", Dot::with_config(&t, &[Config::EdgeNoLabel]));
     let test_tree = DiGraphMap::<u8, ()>::from_edges(&[(0, 1), (0, 2), (0, 3), (0, 5), (1, 4), (2, 8), (3, 6), (3, 7), (9, 10)]);
     assert_eq!(t.node_count(), test_tree.node_count());
@@ -69,5 +73,5 @@ fn main() {
         for j in t.nodes(){
             assert_eq!(t.contains_edge(i, j), test_tree.contains_edge(i, j));
         }
-    }
+    }*/
 }

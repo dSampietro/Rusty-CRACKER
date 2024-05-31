@@ -42,6 +42,10 @@ path = "src/parallel_graph.rs"
 name = "pruning_test"
 path = "src/pruning_test.rs"
 
+[[bin]]
+name = "dashmap"
+path = "src/dashmap.rs"
+
 #[[bin]]
 #name = "input_util"
 #path = "src/input_util.rs"

@@ -1,7 +1,7 @@
 use std::{fmt::Debug, fs::File, io::{self, BufRead, Error}, str::FromStr};
 
 pub fn read_from_file<V: FromStr>(filename: &str) -> Result<Vec<(V, V)>, Error>
-where <V as FromStr>::Err: Debug
+    where <V as FromStr>::Err: Debug
 {
     //let res = Vec::<(u8, u8)>::new();
     let file = File::open(filename);
@@ -10,13 +10,10 @@ where <V as FromStr>::Err: Debug
         Ok(f) => Ok(parse_file(f)),
         Err(e) => Err(e)
     }
-
-
-    //return res;
 }
 
 fn parse_file<V: FromStr>(file: File) -> Vec<(V, V)>
-where <V as FromStr>::Err: Debug
+    where <V as FromStr>::Err: Debug
 {
     //let res = Vec::<(u8, u8)>::new();
     let reader = io::BufReader::new(file);
@@ -43,14 +40,3 @@ where <V as FromStr>::Err: Debug
 
     return edges;
 }
-
-
-/*
-fn main(){
-    env::set_var("RUST_BACKTRACE", "1");
-
-    let filename = "files/bio-diseasome1.mtx";
-    let edges = read_from_file(filename);
-
-    println!("{:?}", edges);
-}*/
