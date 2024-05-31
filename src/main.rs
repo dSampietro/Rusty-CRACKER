@@ -4,13 +4,23 @@ use petgraph::graphmap::{DiGraphMap, UnGraphMap};
 mod graphmap_utils;
 use graphmap_utils::{min_selection, prune};
 
+mod input_util;
+use input_util::read_from_file;
 //mod graphmap_utils_par;
 //use graphmap_utils_par::*;
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
     
-    let edges = [(0, 1), (1, 2), (2, 4), (2, 5), (3, 4), (3, 6), (3, 7), (5, 8), (7, 8), (9, 10)];
+    let filename = "files/example.mtx";
+    let edges_result = read_from_file(filename);
+    if edges_result.is_err(){
+        println!("{:?}", edges_result.err());
+        return ;
+    }
+    let edges = edges_result.unwrap_or(Vec::new());
+    
+    //let edges = [(0, 1), (1, 2), (2, 4), (2, 5), (3, 4), (3, 6), (3, 7), (5, 8), (7, 8), (9, 10)];
     let graph: UnGraphMap<u8, ()> = UnGraphMap::from_edges(&edges);
 
     let mut tree = DiGraphMap::<u8, ()>::new();
