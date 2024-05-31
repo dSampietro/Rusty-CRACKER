@@ -53,9 +53,9 @@ use petgraph::graph::{Graph, NodeIndex};
 fn main() {
     // Example graph `g` with some missing NodeIndex
     let mut g = Graph::<&str, ()>::new();
-    let n0 = g.add_node("node0");
+    let _n0 = g.add_node("node0");
     let n1 = g.add_node("node1");
-    let n2 = g.add_node("node2");
+    let _n2 = g.add_node("node2");
     g.remove_node(n1); // Remove node1 to create a gap
 
     // Create a new graph `h` with the same NodeIndex as `g`

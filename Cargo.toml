@@ -34,5 +34,10 @@ name = "filtermap"
 path = "src/filtermap.rs"
 
 [[bin]]
+name = "parallel_graph"
+path = "src/parallel_graph.rs"
+
+
+[[bin]]
 name = "pruning_test"
 path = "src/pruning_test.rs"

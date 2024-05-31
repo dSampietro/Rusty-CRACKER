@@ -6,22 +6,7 @@ use petgraph::{ graphmap::{DiGraphMap, GraphMap, NodeTrait, UnGraphMap}, Directi
 use rayon::prelude::*;
 
 /// Get the neighborhood (plus itself) of every node
-pub fn get_neighborhood<V: NodeTrait, E, Type: EdgeType>(g: &GraphMap<V, E, Type>) -> HashMap<V, Vec<V>> {
-    let nodes: Vec<V> = g.nodes().collect();
-
-    let neigh: HashMap<V, Vec<V>> = nodes.iter()
-        .map(|&node| {
-            let mut neighbors: Vec<V> = g.neighbors(node).collect();
-            neighbors.push(node);
-            (node, neighbors)
-        })
-        .collect();
-
-    return neigh;
-}
-
-
-fn get_neighborhood_par<V, E, Ty>(g: &GraphMap<V, E, Ty>) -> DashMap<V, Vec<V>>
+fn get_neighborhood<V, E, Ty>(g: &GraphMap<V, E, Ty>) -> DashMap<V, Vec<V>>
 where
     V: NodeTrait + Send + Sync,
     E: Send + Sync,
@@ -41,24 +26,17 @@ where
 }
 
 /// Get the min neighbor of every node
-pub fn get_vmins<V: NodeTrait + Debug + Copy>(neighborhoods: &HashMap<V, Vec<V>>) -> HashMap<V, V>{
+pub fn get_vmins<V: NodeTrait + Send + Sync + Copy>(neighborhoods: &DashMap<V, Vec<V>>) -> DashMap<V, V>{
     
-    /*let v_mins: HashMap<V, V> = neighborhoods.iter()
-        .map(
-        |(&node, neighbors)| {
-            println!("getting v_min of {:?}", node);
-            
-            //a node may have be isolate => no neighbor => unsafe to unwrap => check is is_some
-            let v_min = neighbors.iter().min();
-            
-            if v_min.is_some() {
-                let min_neigh = min(*v_min.unwrap(), node);
-                (node, min_neigh);
-            }            
+    /*let v_mins: DashMap<V, V> = neighborhoods.into_iter()
+        .filter_map(|(&node, neighbors)|{
+            neighbors.into_iter()
+                .min()
+                .map(|&v_min| (node, v_min))
         })
         .collect();*/
-    
-    let v_mins: HashMap<V, V> = neighborhoods.into_iter()
+
+    let v_mins: DashMap<V, V> = neighborhoods.into_iter()
         .filter_map(|(&node, neighbors)|{
             neighbors.into_iter()
                 .min()
@@ -71,11 +49,11 @@ pub fn get_vmins<V: NodeTrait + Debug + Copy>(neighborhoods: &HashMap<V, Vec<V>>
 
 
 //TODO: generalize edges
-pub fn min_selection<N: NodeTrait + Eq + std::fmt::Debug>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()> {
-    let neighborhoods: HashMap<N, Vec<N>> = get_neighborhood(&g);
+pub fn min_selection<N: NodeTrait + Eq + Send + Sync + Debug>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()> {
+    let neighborhoods: DashMap<N, Vec<N>> = get_neighborhood(&g);
     println!("[Min Selection] neighborhoods: {:?}", neighborhoods);
 
-    let v_mins: HashMap<N, N> = get_vmins(&neighborhoods);
+    let v_mins: DashMap<N, N> = get_vmins(&neighborhoods);
     println!("[Min Selection] min neighborhoods: {:?}", v_mins);
 
     // create directed graph h
@@ -104,7 +82,7 @@ pub fn min_selection<N: NodeTrait + Eq + std::fmt::Debug>(g: &UnGraphMap<N, ()>)
 }
 
 
-fn get_outgoing_neighborhood<N: NodeTrait>(h: &DiGraphMap<N, ()>) -> HashMap<N, Vec<N>>{
+fn get_outgoing_neighborhood<N: NodeTrait + Send + Sync>(h: &DiGraphMap<N, ()>) -> HashMap<N, Vec<N>>{
     let mut outgoing_neighborhoods: HashMap<N, Vec<N>> = HashMap::new();
     
     for n in h.nodes(){
@@ -122,7 +100,7 @@ fn get_outgoing_neighborhood<N: NodeTrait>(h: &DiGraphMap<N, ()>) -> HashMap<N, 
 }
 
 
-pub fn prune<N: NodeTrait + Copy + Debug>(h: DiGraphMap<N, ()>, mut tree: DiGraphMap<N, ()>) -> (UnGraphMap<N, ()>, DiGraphMap<N, ()>) {
+pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, mut tree: DiGraphMap<N, ()>) -> (UnGraphMap<N, ()>, DiGraphMap<N, ()>) {
     
     //get outgoing neighborhoods
     let outgoing_neighborhoods: HashMap<N, Vec<N>> = get_outgoing_neighborhood(&h);

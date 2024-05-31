@@ -4,6 +4,9 @@ use petgraph::graphmap::{DiGraphMap, UnGraphMap};
 mod graphmap_utils;
 use graphmap_utils::{min_selection, prune};
 
+//mod graphmap_utils_par;
+//use graphmap_utils_par::*;
+
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
     

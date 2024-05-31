@@ -1,11 +1,11 @@
 use std::env;
 
-use petgraph::{dot::{Config, Dot}, graphmap::{DiGraphMap, UnGraphMap}};
+use petgraph::graphmap::{DiGraphMap, UnGraphMap};
 
 mod graphmap_utils;
 //use graphmap_utils::prune;
 
-use crate::graphmap_utils::{min_selection, prune};
+use crate::graphmap_utils::min_selection;
 
 
 fn main(){
