@@ -1,21 +1,22 @@
 use std::env;
 use petgraph::graphmap::{DiGraphMap, UnGraphMap};
 
-mod graphmap_utils;
-use graphmap_utils::{min_selection, prune};
+mod graphmap_utils_par;
+use graphmap_utils_par::{min_selection, prune};
 
 mod input_util;
 use input_util::read_from_file;
 
-mod graphmap_utils_par;
-//use graphmap_utils_par::*;
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
     
     type V = u16;
+
+    use std::time::Instant;
+    let now = Instant::now();
     
-    let filename = "files/bio-diseasome.mtx";
+    let filename = "files/soc-wiki-Vote.mtx";
     let edges_result = read_from_file::<V>(filename);
     if edges_result.is_err(){
         println!("{:?}", edges_result.err());
@@ -74,4 +75,6 @@ fn main() {
             assert_eq!(t.contains_edge(i, j), test_tree.contains_edge(i, j));
         }
     }*/
+
+    println!("duration: {:?}", now.elapsed());
 }

@@ -1,6 +1,6 @@
 #![allow(dead_code)] 
 
-use std::{collections::HashMap, fmt::Debug};
+use std::{fmt::Debug, sync::Mutex};
 use dashmap::DashMap;
 use petgraph::{ graphmap::{DiGraphMap, GraphMap, NodeTrait, UnGraphMap}, Direction::Outgoing, EdgeType};
 use rayon::prelude::*;
@@ -36,7 +36,8 @@ pub fn get_vmins<V: NodeTrait + Send + Sync + Copy>(neighborhoods: &DashMap<V, V
                 .min()
                 .map(|&v_min| (node, v_min))
         })
-        .collect();*/
+        .collect();
+    */
 
     let v_mins: DashMap<V, V> = DashMap::new();
 
@@ -87,8 +88,8 @@ pub fn min_selection<N: NodeTrait + Eq + Send + Sync + Debug>(g: &UnGraphMap<N, 
 }
 
 
-fn get_outgoing_neighborhood<N: NodeTrait + Send + Sync>(h: &DiGraphMap<N, ()>) -> HashMap<N, Vec<N>>{
-    let mut outgoing_neighborhoods: HashMap<N, Vec<N>> = HashMap::new();
+fn get_outgoing_neighborhood<N: NodeTrait + Send + Sync>(h: &DiGraphMap<N, ()>) -> DashMap<N, Vec<N>>{
+    let outgoing_neighborhoods: DashMap<N, Vec<N>> = DashMap::new();
     
     for n in h.nodes(){
         //outgoing_neighbour = {v | (u->v) € H}
@@ -105,29 +106,56 @@ fn get_outgoing_neighborhood<N: NodeTrait + Send + Sync>(h: &DiGraphMap<N, ()>) 
 }
 
 
-pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, mut tree: DiGraphMap<N, ()>) -> (UnGraphMap<N, ()>, DiGraphMap<N, ()>) {
+pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tree: DiGraphMap<N, ()>) -> (UnGraphMap<N, ()>, DiGraphMap<N, ()>) {
     
     //get outgoing neighborhoods
-    let outgoing_neighborhoods: HashMap<N, Vec<N>> = get_outgoing_neighborhood(&h);
+    let outgoing_neighborhoods: DashMap<N, Vec<N>> = get_outgoing_neighborhood(&h);
     let min_outgoing_neighborhoods = get_vmins(&outgoing_neighborhoods);
 
-    let mut g2 = UnGraphMap::<N, ()>::with_capacity(h.node_count(), h.edge_count());
-    
+    //probable to refactor into a clone-like function
+    let mut pruned_graph = UnGraphMap::<N, ()>::with_capacity(h.node_count(), h.edge_count());
     for n in h.nodes(){  //prima del pruning: g_(i+1) ha gli stessi nodi di h(i)
-        g2.add_node(n);
+        pruned_graph.add_node(n);
     }
 
     //add to G(t+1) + deactivation
-    let mut deactivated_nodes: Vec<N> = Vec::new(); 
+    let deactivated_nodes_mutex: Mutex<Vec<N>> = Mutex::new(Vec::new()); 
+    let entries: Vec<_> = outgoing_neighborhoods.iter().collect();
+    let pruned_graph_mutex = Mutex::new(pruned_graph);
 
-    for (u, neighbors) in &outgoing_neighborhoods {
+    let tree_mutex = Mutex::new(tree);
+
+    entries.par_iter().for_each(|entry|{
+        let (u, neighbors) = entry.pair();
+
+        if neighbors.len() > 1 {
+            let v_min = *min_outgoing_neighborhoods.get(&u).unwrap();
+            
+            for v in neighbors{
+                if *v != v_min{
+                    pruned_graph_mutex.lock().unwrap().add_edge(*v, v_min, ());
+                }
+            }
+        }
+        
+        //deactivate nodes 
+        //TODO: 3rd case (self-loop??)
+        if !neighbors.contains(u) {
+            let v_min = *min_outgoing_neighborhoods.get(&u).unwrap();
+            tree_mutex.lock().unwrap().add_edge(v_min, *u, ());
+            println!("Adding to tree: {:?} -> {:?}", v_min, *u);
+            deactivated_nodes_mutex.lock().unwrap().push(*u);
+        }
+    });
+
+    /*for (u, neighbors) in &outgoing_neighborhoods {
         //println!("Pruning @{:?}", *u);
         if neighbors.len() > 1 {
             let v_min = *min_outgoing_neighborhoods.get(&u).unwrap();
             
             for v in neighbors{
                 if *v != v_min{
-                    g2.add_edge(*v, v_min, ());
+                    pruned_graph.add_edge(*v, v_min, ());
                 }
             }
         }
@@ -141,17 +169,21 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, mu
             deactivated_nodes.push(*u);
         }
     }
-    
+    */
     //TODO: unnecessary sort if StableGraph is used
+    let mut deactivated_nodes = deactivated_nodes_mutex.into_inner().unwrap_or(Vec::new());
     deactivated_nodes.sort();
     deactivated_nodes.reverse();
 
-    //println!("g2: {:?}", g2);
+    let mut pruned_graph = pruned_graph_mutex.into_inner().unwrap();
+    let tree = tree_mutex.into_inner().unwrap();
+
+    //println!("pruned_graph: {:?}", pruned_graph);
 
     for deactivated in deactivated_nodes{
         println!("Removing node: {:?}", deactivated);
-        g2.remove_node(deactivated);
+        pruned_graph.remove_node(deactivated);
     }
 
-    return (g2, tree);
+    return (pruned_graph, tree);
 }
