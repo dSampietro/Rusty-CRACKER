@@ -12,45 +12,34 @@ rayon = "1.10.0"
 name = "main"
 path = "src/main.rs"
 
-
-[[bin]]
-name = "graphmap"
-path = "src/sketches/graphmap.rs"
+#[[bin]]
+#name = "graphmap"
+#path = "src/sketches/graphmap.rs"
 
 #[[bin]]
-#name = "multithreaded_graph"
-#path = "src/sketches/multithreaded_graph.rs"
+#name = "generalized_graph"
+#path = "src/sketches/generalized_graph.rs"
 
 #[[bin]]
-#name = "singlethreaded_graph"
-#path = "src/sketches/singlethreaded_graph.rs"
+#name = "filtermap"
+#path = "src/sketches/filtermap.rs"
 
-[[bin]]
-name = "generalized_graph"
-path = "src/sketches/generalized_graph.rs"
+#[[bin]]
+#name = "parallel_graph"
+#path = "src/sketches/parallel_graph.rs"
 
-[[bin]]
-name = "filtermap"
-path = "src/sketches/filtermap.rs"
+#[[bin]]
+#name = "pruning_test"
+#path = "src/sketches/pruning_test.rs"
 
-[[bin]]
-name = "parallel_graph"
-path = "src/sketches/parallel_graph.rs"
-
-
-[[bin]]
-name = "pruning_test"
-path = "src/sketches/pruning_test.rs"
-
-[[bin]]
-name = "dashmap"
-path = "src/sketches/dashmap.rs"
+#[[bin]]
+#name = "dashmap"
+#path = "src/sketches/dashmap.rs"
 
 #[[bin]]
 #name = "input_util"
 #path = "src/input_util.rs"
 
-[[bin]]
-name = "tree_propagation"
-path = "src/sketches/tree_propagation.rs"
-
+#[[bin]]
+#name = "tree_propagation"
+#path = "src/sketches/tree_propagation.rs"

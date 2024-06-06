@@ -148,32 +148,8 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tr
         }
     });
 
-    /*for (u, neighbors) in &outgoing_neighborhoods {
-        //println!("Pruning @{:?}", *u);
-        if neighbors.len() > 1 {
-            let v_min = *min_outgoing_neighborhoods.get(&u).unwrap();
-            
-            for v in neighbors{
-                if *v != v_min{
-                    pruned_graph.add_edge(*v, v_min, ());
-                }
-            }
-        }
-        
-        //deactivate nodes 
-        //TODO: 3rd case (self-loop??)
-        if !neighbors.contains(u) {
-            let v_min = *min_outgoing_neighborhoods.get(&u).unwrap();
-            tree.add_edge(v_min, *u, ());
-            println!("Adding to tree: {:?} -> {:?}", v_min, *u);
-            deactivated_nodes.push(*u);
-        }
-    }
-    */
-    //TODO: unnecessary sort if StableGraph is used
     let mut deactivated_nodes = deactivated_nodes_mutex.into_inner().unwrap_or(Vec::new());
-    deactivated_nodes.sort();
-    deactivated_nodes.reverse();
+    deactivated_nodes.sort_unstable_by(|a, b| b.cmp(a));    //sort + reverse
 
     let mut pruned_graph = pruned_graph_mutex.into_inner().unwrap();
     let tree = tree_mutex.into_inner().unwrap();
