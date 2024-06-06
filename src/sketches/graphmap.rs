@@ -1,9 +1,9 @@
 use std::{collections::HashMap, hash::Hash};
 
 use petgraph::graphmap::UnGraphMap;
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+//use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
-fn get_mins<V: Ord + Hash + Copy>(neigh: &HashMap<V, Vec<V>>) -> HashMap<V, V>{
+/*fn get_mins<V: Ord + Hash + Copy>(neigh: &HashMap<V, Vec<V>>) -> HashMap<V, V>{
     let min_neigh = neigh.into_iter()
         .filter_map(|(&node, neighbors)| {
             neighbors.into_iter().min()
@@ -13,7 +13,7 @@ fn get_mins<V: Ord + Hash + Copy>(neigh: &HashMap<V, Vec<V>>) -> HashMap<V, V>{
 
     return min_neigh;
 }
-
+*/
 fn main(){
     let edges = [(0, 1), (1, 2), (2, 4), (2, 5), (3, 4), (3, 6), (3, 7), (5, 8), (7, 8)];
     let mut graph = UnGraphMap::<u8, ()>::from_edges(&edges);
@@ -21,7 +21,11 @@ fn main(){
 
     println!("graph: {:?}", graph);
 
-    for n in graph.nodes(){
+    for node in graph.nodes(){
+        println!("{:?}", node);
+    }
+
+    /*for n in graph.nodes(){
         println!("{:?}", n);
     }
 
@@ -36,7 +40,7 @@ fn main(){
     let min_neigh: HashMap<u8, u8> = get_mins(&neigh);
     
     println!("neigh: {:?}", neigh);
-    println!("min_neigh: {:?}", min_neigh);
+    println!("min_neigh: {:?}", min_neigh);*/
 
     /* 
     let mut h = DiGraphMap::<u8, ()>::new();

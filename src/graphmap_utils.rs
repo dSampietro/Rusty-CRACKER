@@ -73,10 +73,10 @@ pub fn get_vmins<V: NodeTrait + Debug + Copy>(neighborhoods: &HashMap<V, Vec<V>>
 //TODO: generalize edges
 pub fn min_selection<N: NodeTrait + Eq + std::fmt::Debug>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()> {
     let neighborhoods: HashMap<N, Vec<N>> = get_neighborhood(&g);
-    println!("[Min Selection] neighborhoods: {:?}", neighborhoods);
+    //println!("[Min Selection] neighborhoods: {:?}", neighborhoods);
 
     let v_mins: HashMap<N, N> = get_vmins(&neighborhoods);
-    println!("[Min Selection] min neighborhoods: {:?}", v_mins);
+    //println!("[Min Selection] min neighborhoods: {:?}", v_mins);
 
     // create directed graph h
     let mut h: DiGraphMap<N, ()> = DiGraphMap::new();
@@ -154,7 +154,7 @@ pub fn prune<N: NodeTrait + Copy + Debug>(h: DiGraphMap<N, ()>, mut tree: DiGrap
         if !neighbors.contains(u) {
             let v_min = *min_outgoing_neighborhoods.get(&u).unwrap();
             tree.add_edge(v_min, *u, ());
-            println!("Adding to tree: {:?} -> {:?}", v_min, *u);
+            //println!("Adding to tree: {:?} -> {:?}", v_min, *u);
             deactivated_nodes.push(*u);
         }
     }
@@ -166,7 +166,7 @@ pub fn prune<N: NodeTrait + Copy + Debug>(h: DiGraphMap<N, ()>, mut tree: DiGrap
     //println!("g2: {:?}", g2);
 
     for deactivated in deactivated_nodes{
-        println!("Removing node: {:?}", deactivated);
+        //println!("Removing node: {:?}", deactivated);
         g2.remove_node(deactivated);
     }
 

@@ -25,7 +25,7 @@ fn parse_file<V: FromStr>(file: File) -> Vec<(V, V)>
 
     let graph_struct: Vec<_> = graph_info.split_whitespace().collect();
     let n_edges = graph_struct[2].parse::<usize>().unwrap();
-    println!("{:?}", n_edges);
+    //println!("{:?}", n_edges);
 
     let mut edges: Vec<(V, V)> = Vec::with_capacity(n_edges);
 

@@ -15,37 +15,42 @@ path = "src/main.rs"
 
 [[bin]]
 name = "graphmap"
-path = "src/graphmap.rs"
+path = "src/sketches/graphmap.rs"
 
 #[[bin]]
 #name = "multithreaded_graph"
-#path = "src/multithreaded_graph.rs"
+#path = "src/sketches/multithreaded_graph.rs"
 
 #[[bin]]
 #name = "singlethreaded_graph"
-#path = "src/singlethreaded_graph.rs"
+#path = "src/sketches/singlethreaded_graph.rs"
 
 [[bin]]
 name = "generalized_graph"
-path = "src/generalized_graph.rs"
+path = "src/sketches/generalized_graph.rs"
 
 [[bin]]
 name = "filtermap"
-path = "src/filtermap.rs"
+path = "src/sketches/filtermap.rs"
 
 [[bin]]
 name = "parallel_graph"
-path = "src/parallel_graph.rs"
+path = "src/sketches/parallel_graph.rs"
 
 
 [[bin]]
 name = "pruning_test"
-path = "src/pruning_test.rs"
+path = "src/sketches/pruning_test.rs"
 
 [[bin]]
 name = "dashmap"
-path = "src/dashmap.rs"
+path = "src/sketches/dashmap.rs"
 
 #[[bin]]
 #name = "input_util"
 #path = "src/input_util.rs"
+
+[[bin]]
+name = "tree_propagation"
+path = "src/sketches/tree_propagation.rs"
+

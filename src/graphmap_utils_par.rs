@@ -1,8 +1,8 @@
 #![allow(dead_code)] 
 
-use std::{fmt::Debug, sync::Mutex};
+use std::{collections::HashMap, fmt::Debug, sync::Mutex};
 use dashmap::DashMap;
-use petgraph::{ graphmap::{DiGraphMap, GraphMap, NodeTrait, UnGraphMap}, Direction::Outgoing, EdgeType};
+use petgraph::{ graphmap::{DiGraphMap, GraphMap, NodeTrait, UnGraphMap}, Direction::{Incoming, Outgoing}, EdgeType};
 use rayon::prelude::*;
 
 /// Get the neighborhood (plus itself) of every node
@@ -57,10 +57,10 @@ pub fn get_vmins<V: NodeTrait + Send + Sync + Copy>(neighborhoods: &DashMap<V, V
 //TODO: generalize edges
 pub fn min_selection<N: NodeTrait + Eq + Send + Sync + Debug>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()> {
     let neighborhoods: DashMap<N, Vec<N>> = get_neighborhood(&g);
-    println!("[Min Selection] neighborhoods: {:?}", neighborhoods);
+    //println!("[Min Selection] neighborhoods: {:?}", neighborhoods);
 
     let v_mins: DashMap<N, N> = get_vmins(&neighborhoods);
-    println!("[Min Selection] min neighborhoods: {:?}", v_mins);
+    //println!("[Min Selection] min neighborhoods: {:?}", v_mins);
 
     // create directed graph h
     let mut h: DiGraphMap<N, ()> = DiGraphMap::new();
@@ -143,7 +143,7 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tr
         if !neighbors.contains(u) {
             let v_min = *min_outgoing_neighborhoods.get(&u).unwrap();
             tree_mutex.lock().unwrap().add_edge(v_min, *u, ());
-            println!("Adding to tree: {:?} -> {:?}", v_min, *u);
+            //println!("Adding to tree: {:?} -> {:?}", v_min, *u);
             deactivated_nodes_mutex.lock().unwrap().push(*u);
         }
     });
@@ -181,9 +181,46 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tr
     //println!("pruned_graph: {:?}", pruned_graph);
 
     for deactivated in deactivated_nodes{
-        println!("Removing node: {:?}", deactivated);
+        //println!("Removing node: {:?}", deactivated);
         pruned_graph.remove_node(deactivated);
     }
 
     return (pruned_graph, tree);
+}
+
+
+pub fn seed_propagation<V: NodeTrait + Debug>(tree: DiGraphMap<V, ()>) -> HashMap<V, V>{
+    let mut res: HashMap<V, V> = HashMap::new();
+
+    let mut nodes: Vec<V> = tree.nodes().collect();
+    //assert_eq!(nodes.len(), tree.node_count());
+    //println!("Nodes: {:?}", nodes);
+    nodes.sort_unstable();
+
+    while nodes.len() != 0 {    
+        let min_node = nodes[0];        //sorting nodes => min node will always be the 1st
+        let incoming_edge = tree.edges_directed(min_node, Incoming);    //either 0 or 1 edge
+        //println!("{:?}", incoming_edge);
+
+        for edge in incoming_edge{
+            //println!("Node {:?}, edge {:?}", min_node, edge);
+
+            if res.contains_key(&edge.0){
+                let parent_seed = res.get(&edge.0).unwrap();
+                res.insert(min_node, *parent_seed);
+            }
+            else{
+                res.insert(min_node, edge.0);
+            }
+        }
+
+        //no incoming edge into node => node is root of a tree
+        if res.contains_key(&min_node) == false{
+            res.insert(min_node, min_node);
+        }
+
+        nodes.remove(0);
+    }
+
+    return res;
 }

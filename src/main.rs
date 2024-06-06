@@ -2,30 +2,31 @@ use std::env;
 use petgraph::graphmap::{DiGraphMap, UnGraphMap};
 
 mod graphmap_utils_par;
-use graphmap_utils_par::{min_selection, prune};
+use graphmap_utils_par::{min_selection, prune, seed_propagation};
 
 mod input_util;
 use input_util::read_from_file;
-
+use rayon::ThreadPoolBuilder;
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
     
+    let num_threads = 8;
+    ThreadPoolBuilder::new().num_threads(num_threads).build_global().unwrap();
+    
     type V = u16;
 
-    use std::time::Instant;
-    let now = Instant::now();
+    let now = std::time::Instant::now();
     
-    let filename = "files/soc-wiki-Vote.mtx";
+    let filename = "files/aves-wildbird-network-6.mtx";
     let edges_result = read_from_file::<V>(filename);
     if edges_result.is_err(){
-        println!("{:?}", edges_result.err());
+        println!("Error reading edges from file: {:?}", edges_result.err());
         return ;
     }
     
     let edges = edges_result.unwrap_or(Vec::new());
     
-    //let edges = [(0, 1), (1, 2), (2, 4), (2, 5), (3, 4), (3, 6), (3, 7), (5, 8), (7, 8), (9, 10)];
     let graph: UnGraphMap<V, ()> = UnGraphMap::from_edges(&edges);
 
     let mut tree = DiGraphMap::<V, ()>::new();
@@ -41,13 +42,13 @@ fn main() {
     loop {   
         //min selection
         let h = min_selection(&gt);
-        println!("h{num_it}: {:?}", h);
+        //println!("h{num_it}: {:?}", h);
 
         //println!("{:?}", h);
         
         //pruning
         let (temp_g, tree) = prune(h, t);
-        println!("g{:?}: {:?}", num_it + 1, temp_g);
+        //println!("g{:?}: {:?}", num_it + 1, temp_g);
         
         gt = temp_g;//.clone();
         t = tree;//.clone();
@@ -59,22 +60,11 @@ fn main() {
         num_it += 1;
     }
 
-    println!("t: {num_it}");
-    println!("pruned g2: {:?}", gt);
-    println!("T: {:?}", t);
-
-    /*
-    //println!("{:?}", Dot::with_config(&t, &[Config::EdgeNoLabel]));
-    let test_tree = DiGraphMap::<u8, ()>::from_edges(&[(0, 1), (0, 2), (0, 3), (0, 5), (1, 4), (2, 8), (3, 6), (3, 7), (9, 10)]);
-    assert_eq!(t.node_count(), test_tree.node_count());
-    assert_eq!(t.edge_count(), test_tree.edge_count());
-
-    //no extra edges
-    for i in t.nodes(){
-        for j in t.nodes(){
-            assert_eq!(t.contains_edge(i, j), test_tree.contains_edge(i, j));
-        }
-    }*/
-
+    let seeds = seed_propagation(t);
+    
     println!("duration: {:?}", now.elapsed());
+    
+    println!("t: {num_it}");
+    println!("seeds: {seeds:?}");
+    assert_eq!(seeds.len(), graph.node_count());    //all node have a seed => no nodes are lost
 }
