@@ -11,14 +11,17 @@ use rayon::ThreadPoolBuilder;
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
     
-    let num_threads = 8;
-    ThreadPoolBuilder::new().num_threads(num_threads).build_global().unwrap();
+    //setup parallelism
+    let num_threads = 4;
+    ThreadPoolBuilder::new()
+        .num_threads(num_threads)
+        .build_global()
+        .unwrap();
     
     type V = u16;
 
-    let now = std::time::Instant::now();
     
-    let filename = "files/aves-wildbird-network-6.mtx";
+    let filename = "files/soc-wiki-vote.mtx";
     let edges_result = read_from_file::<V>(filename);
     if edges_result.is_err(){
         println!("Error reading edges from file: {:?}", edges_result.err());
@@ -38,6 +41,8 @@ fn main() {
     let mut t = tree.clone();
 
     let mut num_it = 1;
+
+    let now = std::time::Instant::now();
 
     loop {   
         //min selection
@@ -65,6 +70,6 @@ fn main() {
     println!("duration: {:?}", now.elapsed());
     
     println!("t: {num_it}");
-    println!("seeds: {seeds:?}");
+    //println!("seeds: {seeds:?}");
     assert_eq!(seeds.len(), graph.node_count());    //all node have a seed => no nodes are lost
 }

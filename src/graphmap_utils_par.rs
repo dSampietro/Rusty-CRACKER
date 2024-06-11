@@ -41,7 +41,6 @@ pub fn get_vmins<V: NodeTrait + Send + Sync + Copy>(neighborhoods: &DashMap<V, V
 
     let v_mins: DashMap<V, V> = DashMap::new();
 
-    // Use Rayon to find the minimum values in parallel
     entries.par_iter().for_each(|entry| {
         let (&key, vec) = entry.pair();
         if let Some(&min_value) = vec.iter().min() {
@@ -64,7 +63,6 @@ pub fn min_selection<N: NodeTrait + Eq + Send + Sync + Debug>(g: &UnGraphMap<N, 
 
     // create directed graph h
     let mut h: DiGraphMap<N, ()> = DiGraphMap::new();
-    
     // for graphMap: no need to add nodes; when adding edges, it adds nodes
 
     //add edges
@@ -112,8 +110,9 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tr
     let outgoing_neighborhoods: DashMap<N, Vec<N>> = get_outgoing_neighborhood(&h);
     let min_outgoing_neighborhoods = get_vmins(&outgoing_neighborhoods);
 
-    //probable to refactor into a clone-like function
-    let mut pruned_graph = UnGraphMap::<N, ()>::with_capacity(h.node_count(), h.edge_count());
+    //maybe will refactor to a clone-like function
+    let mut pruned_graph = UnGraphMap::<N, ()>
+        ::with_capacity(h.node_count(), h.edge_count());
     for n in h.nodes(){  //prima del pruning: g_(i+1) ha gli stessi nodi di h(i)
         pruned_graph.add_node(n);
     }
@@ -142,9 +141,12 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tr
         //TODO: 3rd case (self-loop??)
         if !neighbors.contains(u) {
             let v_min = *min_outgoing_neighborhoods.get(&u).unwrap();
-            tree_mutex.lock().unwrap().add_edge(v_min, *u, ());
+            tree_mutex.lock().unwrap()
+                .add_edge(v_min, *u, ());
+
             //println!("Adding to tree: {:?} -> {:?}", v_min, *u);
-            deactivated_nodes_mutex.lock().unwrap().push(*u);
+            deactivated_nodes_mutex.lock().unwrap()
+                .push(*u);
         }
     });
 
@@ -171,10 +173,10 @@ pub fn seed_propagation<V: NodeTrait + Debug>(tree: DiGraphMap<V, ()>) -> HashMa
     let mut nodes: Vec<V> = tree.nodes().collect();
     //assert_eq!(nodes.len(), tree.node_count());
     //println!("Nodes: {:?}", nodes);
-    nodes.sort_unstable();
+    nodes.sort_unstable();  //no duplicates => can use unstable sorting => more efficient
 
     while nodes.len() != 0 {    
-        let min_node = nodes[0];        //sorting nodes => min node will always be the 1st
+        let min_node = nodes[0];        //sorted nodes => min node will always be the 1st
         let incoming_edge = tree.edges_directed(min_node, Incoming);    //either 0 or 1 edge
         //println!("{:?}", incoming_edge);
 
