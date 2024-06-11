@@ -70,6 +70,6 @@ fn main() {
     println!("duration: {:?}", now.elapsed());
     
     println!("t: {num_it}");
-    //println!("seeds: {seeds:?}");
+    println!("seeds: {seeds:?}");
     assert_eq!(seeds.len(), graph.node_count());    //all node have a seed => no nodes are lost
 }

@@ -110,12 +110,16 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tr
     let outgoing_neighborhoods: DashMap<N, Vec<N>> = get_outgoing_neighborhood(&h);
     let min_outgoing_neighborhoods = get_vmins(&outgoing_neighborhoods);
 
-    //maybe will refactor to a clone-like function
-    let mut pruned_graph = UnGraphMap::<N, ()>
+    let pruned_graph = UnGraphMap::<N, ()>
         ::with_capacity(h.node_count(), h.edge_count());
-    for n in h.nodes(){  //prima del pruning: g_(i+1) ha gli stessi nodi di h(i)
+    
+    /*
+    maybe this is not necessary:
+    when par_iterating, every node will be visited => every node will be added
+    */
+    /*for n in h.nodes(){  //prima del pruning: g_(i+1) ha gli stessi nodi di h(i)
         pruned_graph.add_node(n);
-    }
+    }*/
 
     //add to G(t+1) + deactivation
     let deactivated_nodes_mutex: Mutex<Vec<N>> = Mutex::new(Vec::new()); 
@@ -132,13 +136,13 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tr
             
             for v in neighbors{
                 if *v != v_min{
-                    pruned_graph_mutex.lock().unwrap().add_edge(*v, v_min, ());
+                    pruned_graph_mutex.lock().unwrap()
+                        .add_edge(*v, v_min, ());
                 }
             }
         }
         
         //deactivate nodes 
-        //TODO: 3rd case (self-loop??)
         if !neighbors.contains(u) {
             let v_min = *min_outgoing_neighborhoods.get(&u).unwrap();
             tree_mutex.lock().unwrap()
@@ -148,6 +152,7 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tr
             deactivated_nodes_mutex.lock().unwrap()
                 .push(*u);
         }
+        //TODO: 3rd case (self-loop??)
     });
 
     let mut deactivated_nodes = deactivated_nodes_mutex.into_inner().unwrap_or(Vec::new());
