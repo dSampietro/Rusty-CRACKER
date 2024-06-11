@@ -26,8 +26,7 @@ where
 }
 
 /// Get the min neighbor of every node
-pub fn get_vmins<V: NodeTrait + Send + Sync + Copy>(neighborhoods: &DashMap<V, Vec<V>>) -> DashMap<V, V>
-{
+pub fn get_vmins<V: NodeTrait + Send + Sync + Copy>(neighborhoods: &DashMap<V, Vec<V>>) -> DashMap<V, V>{
     let entries: Vec<_> = neighborhoods.iter().collect();
 
     /*let v_mins: DashMap<V, V> = entries.iter()
@@ -67,13 +66,13 @@ pub fn min_selection<N: NodeTrait + Eq + Send + Sync + Debug>(g: &UnGraphMap<N, 
 
     //add edges
     for (u, neighbors) in neighborhoods{
-        let v_min_opt = v_mins.get(&u);
+        let v_min_option = v_mins.get(&u);
         
-        if v_min_opt.is_none(){
+        if v_min_option.is_none(){
             continue;
         }
         
-        let v_min = *v_min_opt.unwrap();
+        let v_min = *v_min_option.unwrap();
                 
         h.add_edge(u, v_min, ());
         for node in neighbors {
@@ -86,7 +85,8 @@ pub fn min_selection<N: NodeTrait + Eq + Send + Sync + Debug>(g: &UnGraphMap<N, 
 }
 
 
-fn get_outgoing_neighborhood<N: NodeTrait + Send + Sync>(h: &DiGraphMap<N, ()>) -> DashMap<N, Vec<N>>{
+//DEPRECATED
+fn get_outgoing_neighborhood_seq<N: NodeTrait + Send + Sync>(h: &DiGraphMap<N, ()>) -> DashMap<N, Vec<N>>{
     let outgoing_neighborhoods: DashMap<N, Vec<N>> = DashMap::new();
     
     for n in h.nodes(){
@@ -104,6 +104,36 @@ fn get_outgoing_neighborhood<N: NodeTrait + Send + Sync>(h: &DiGraphMap<N, ()>) 
 }
 
 
+fn get_outgoing_neighborhood<N: NodeTrait + Send + Sync>(h: &DiGraphMap<N, ()>) -> DashMap<N, Vec<N>>{
+    let outgoing_neighborhoods: DashMap<N, Vec<N>> = DashMap::new();
+    
+    /*for n in h.nodes(){
+        //outgoing_neighbour = {v | (u->v) € H}
+        let mut local_outgoing = Vec::<N>::new();
+
+        for dest in h.neighbors_directed(n, Outgoing){
+            local_outgoing.push(dest);
+        }
+
+        outgoing_neighborhoods.insert(n, local_outgoing);
+    }*/
+
+    let nodes: Vec<_> = h.nodes().collect();
+    nodes.par_iter().for_each(|&n| {
+        let mut local_outgoing = Vec::<N>::new();
+
+        for dest in h.neighbors_directed(n, Outgoing){
+            local_outgoing.push(dest);
+        }
+
+        outgoing_neighborhoods.insert(n, local_outgoing);
+    });
+
+    return outgoing_neighborhoods;
+}
+
+
+
 pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tree: DiGraphMap<N, ()>) -> (UnGraphMap<N, ()>, DiGraphMap<N, ()>) {
     
     //get outgoing neighborhoods
@@ -114,7 +144,7 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tr
         ::with_capacity(h.node_count(), h.edge_count());
     
     /*
-    maybe this is not necessary:
+    this is not necessary:
     when par_iterating, every node will be visited => every node will be added
     */
     /*for n in h.nodes(){  //prima del pruning: g_(i+1) ha gli stessi nodi di h(i)
