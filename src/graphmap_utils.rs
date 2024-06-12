@@ -2,7 +2,7 @@
 
 use std::{collections::HashMap, fmt::Debug};
 use dashmap::DashMap;
-use petgraph::{ graphmap::{DiGraphMap, GraphMap, NodeTrait, UnGraphMap}, Direction::Outgoing, EdgeType};
+use petgraph::{ graphmap::{DiGraphMap, GraphMap, NodeTrait, UnGraphMap}, Direction::{Incoming, Outgoing}, EdgeType};
 use rayon::prelude::*;
 
 /// Get the neighborhood (plus itself) of every node
@@ -171,4 +171,40 @@ pub fn prune<N: NodeTrait + Copy + Debug>(h: DiGraphMap<N, ()>, mut tree: DiGrap
     }
 
     return (g2, tree);
+}
+
+pub fn seed_propagation<V: NodeTrait + Debug>(tree: DiGraphMap<V, ()>) -> HashMap<V, V>{
+    let mut res: HashMap<V, V> = HashMap::new();
+
+    let mut nodes: Vec<V> = tree.nodes().collect();
+    //assert_eq!(nodes.len(), tree.node_count());
+    //println!("Nodes: {:?}", nodes);
+    nodes.sort_unstable();  //no duplicates => can use unstable sorting => more efficient
+
+    while nodes.len() != 0 {    
+        let min_node = nodes[0];        //sorted nodes => min node will always be the 1st
+        let incoming_edge = tree.edges_directed(min_node, Incoming);    //either 0 or 1 edge
+        //println!("{:?}", incoming_edge);
+
+        for edge in incoming_edge{
+            //println!("Node {:?}, edge {:?}", min_node, edge);
+
+            if res.contains_key(&edge.0){
+                let parent_seed = res.get(&edge.0).unwrap();
+                res.insert(min_node, *parent_seed);
+            }
+            else{
+                res.insert(min_node, edge.0);
+            }
+        }
+
+        //no incoming edge into node => node is root of a tree
+        if res.contains_key(&min_node) == false{
+            res.insert(min_node, min_node);
+        }
+
+        nodes.remove(0);
+    }
+
+    return res;
 }
