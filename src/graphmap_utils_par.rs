@@ -1,6 +1,6 @@
 #![allow(dead_code)] 
 
-use std::{collections::HashMap, fmt::Debug, sync::Mutex};
+use std::{collections::{HashMap, HashSet}, fmt::Debug, sync::Mutex};
 use dashmap::DashMap;
 use petgraph::{ graphmap::{DiGraphMap, GraphMap, NodeTrait, UnGraphMap}, Direction::{Incoming, Outgoing}, EdgeType};
 use rayon::prelude::*;
@@ -53,17 +53,17 @@ pub fn get_vmins<V: NodeTrait + Send + Sync + Copy>(neighborhoods: &DashMap<V, V
 
 
 //TODO: generalize edges
-pub fn min_selection<N: NodeTrait + Eq + Send + Sync + Debug>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()> {
+//TODO: parallelize
+pub fn min_selection_base<N>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()> 
+    where N: NodeTrait + Eq + Send + Sync + Debug
+{
     let neighborhoods: DashMap<N, Vec<N>> = get_neighborhood(&g);
-    //println!("[Min Selection] neighborhoods: {:?}", neighborhoods);
-
     let v_mins: DashMap<N, N> = get_vmins(&neighborhoods);
-    //println!("[Min Selection] min neighborhoods: {:?}", v_mins);
+
 
     // create directed graph h
     let mut h: DiGraphMap<N, ()> = DiGraphMap::new();
-    // for graphMap: no need to add nodes; when adding edges, it adds nodes
-
+    
     //add edges
     for (u, neighbors) in neighborhoods{
         let v_min_option = v_mins.get(&u);
@@ -73,7 +73,8 @@ pub fn min_selection<N: NodeTrait + Eq + Send + Sync + Debug>(g: &UnGraphMap<N, 
         }
         
         let v_min = *v_min_option.unwrap();
-                
+
+        // base
         h.add_edge(u, v_min, ());
         for node in neighbors {
             //println!("adding: {:?} -> {:?}", node, v_min);
@@ -83,6 +84,66 @@ pub fn min_selection<N: NodeTrait + Eq + Send + Sync + Debug>(g: &UnGraphMap<N, 
 
     return h;
 }
+
+// with Edge Pruning
+pub fn min_selection<N>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()> 
+    where N: NodeTrait + Eq + Send + Sync + Debug
+{
+    let neighborhoods: DashMap<N, Vec<N>> = get_neighborhood(&g);
+    let v_mins: DashMap<N, N> = get_vmins(&neighborhoods);
+
+
+    // create directed graph h
+    let mut h: DiGraphMap<N, ()> = DiGraphMap::new();
+    
+    let mut nodes: HashSet<N> = g.nodes().collect();
+    
+    //add edges
+    for (n, neighbors) in neighborhoods{
+        if !nodes.contains(&n){
+            continue;
+        }
+
+        //when a node is already the minimum of its neighbourhood, it does not need to notify this information to its neighbours
+        let n_min = *v_mins.get(&n).unwrap();
+        if n == n_min{
+            for z in neighbors {
+                let z_min = *v_mins.get(&z).unwrap();
+                
+                if z_min == n_min{
+                    h.add_edge(z, n, ());
+                }
+                else{
+                    h.add_edge(z, z_min, ());
+                    h.add_edge(n, z_min, ());
+                }
+                nodes.remove(&z);
+            } 
+        }
+
+        else{
+            let v_min_option = v_mins.get(&n);
+        
+            if v_min_option.is_none(){
+                continue;
+            }
+            
+            let v_min = *v_min_option.unwrap();
+    
+            h.add_edge(n, v_min, ());
+            for node in neighbors {
+                //println!("adding: {:?} -> {:?}", node, v_min);
+                h.add_edge(node, v_min, ());
+            }
+        }
+
+        nodes.remove(&n);
+    }
+
+    return h;
+}
+
+
 
 
 //DEPRECATED

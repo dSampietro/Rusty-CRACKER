@@ -1,4 +1,4 @@
-use std::env;
+use std::{collections::HashSet, env};
 use getopts::Options;
 use petgraph::graphmap::{DiGraphMap, UnGraphMap};
 
@@ -76,13 +76,9 @@ fn main() {
     loop {   
         //min selection
         let h = min_selection(&gt);
-        //println!("h{num_it}: {:?}", h);
-
-        //println!("{:?}", h);
         
         //pruning
         let (temp_g, tree) = prune(h, t);
-        //println!("g{:?}: {:?}", num_it + 1, temp_g);
         
         gt = temp_g;//.clone();
         t = tree;//.clone();
@@ -101,5 +97,7 @@ fn main() {
     println!("t: {num_it}");
     //println!("seeds: {seeds:?}");
     assert_eq!(seeds.len(), graph.node_count());    //all node have a seed => no nodes are lost
-
+    
+    let ncc: HashSet<_> = seeds.values().collect();
+    println!("#CC: {:?}\nCC: {:?}", ncc.len(), ncc);
 }
