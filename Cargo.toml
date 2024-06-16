@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 dashmap = "5.5.3"
 getopts = "0.2.21"
+itertools = "0.13.0"
 petgraph = "0.6.5"
 rayon = "1.10.0"
 

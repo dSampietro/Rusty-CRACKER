@@ -3,11 +3,14 @@ use getopts::Options;
 use petgraph::graphmap::{DiGraphMap, UnGraphMap};
 
 mod graphmap_utils_par;
-use graphmap_utils_par::{min_selection, prune, seed_propagation};
+use graphmap_utils_par::{min_selection_ep, prune, seed_propagation};
 
 mod input_util;
 use input_util::read_from_file;
 use rayon::ThreadPoolBuilder;
+
+
+// ~20 ms / 50k edges
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
@@ -22,16 +25,12 @@ fn main() {
     type V = u16;
 
     //get cli args
-    
     let args: Vec<String> = std::env::args().collect();
-    /*let filename = args
-        .get(1);//.unwrap_();//_or(&default_file);
-    }*/
 
     //get opts
     let mut opts = Options::new();
     opts.optopt("f", "file", "provide the file containg the graph output file name", "FILEPATH");
-    opts.optflag("h", "help", "print this help menu");
+    opts.optflag("h", "help", "print help menu");
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
@@ -75,12 +74,13 @@ fn main() {
 
     loop {   
         //min selection
-        let h = min_selection(&gt);
+        let h = min_selection_ep(&gt);
         
         //pruning
         let (temp_g, tree) = prune(h, t);
         
         gt = temp_g;//.clone();
+        //println!("g{num_it}: {:?}", gt);
         t = tree;//.clone();
 
         if gt.edge_count() == 0 {    
@@ -91,11 +91,11 @@ fn main() {
     }
 
     let seeds = seed_propagation(t);
+    //println!("seeds: {seeds:?}");
     
     println!("duration: {:?}", now.elapsed());
     
     println!("t: {num_it}");
-    //println!("seeds: {seeds:?}");
     assert_eq!(seeds.len(), graph.node_count());    //all node have a seed => no nodes are lost
     
     let ncc: HashSet<_> = seeds.values().collect();
