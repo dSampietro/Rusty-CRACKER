@@ -15,6 +15,8 @@ use rayon::ThreadPoolBuilder;
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
     
+    type V = u16;
+    
     //setup parallelism
     let num_threads = 0;    //let rayon decide
     ThreadPoolBuilder::new()
@@ -22,7 +24,6 @@ fn main() {
         .build_global()
         .unwrap();
     
-    type V = u16;
 
     //get cli args
     let args: Vec<String> = std::env::args().collect();
@@ -79,9 +80,9 @@ fn main() {
         //pruning
         let (temp_g, tree) = prune(h, t);
         
-        gt = temp_g;//.clone();
+        gt = temp_g;
         //println!("g{num_it}: {:?}", gt);
-        t = tree;//.clone();
+        t = tree;
 
         if gt.edge_count() == 0 {    
             break
@@ -98,6 +99,6 @@ fn main() {
     println!("t: {num_it}");
     assert_eq!(seeds.len(), graph.node_count());    //all node have a seed => no nodes are lost
     
-    let ncc: HashSet<_> = seeds.values().collect();
-    println!("#CC: {:?}\nCC: {:?}", ncc.len(), ncc);
+    let num_conn_comp: HashSet<_> = seeds.values().collect();
+    println!("#CC: {:?}\num_conn_comp: {:?}", num_conn_comp.len(), num_conn_comp);
 }

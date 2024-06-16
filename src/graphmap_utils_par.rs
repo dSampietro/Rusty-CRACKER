@@ -101,70 +101,6 @@ pub fn min_selection_base<N>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()>
 }
 
 
-/*
-//w/o sorting of neighbors
-// with Edge Pruning
-pub fn min_selection<N>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()> 
-    where N: NodeTrait + Eq + Send + Sync + Debug
-{
-    let neighborhoods: DashMap<N, Vec<N>> = get_neighborhood(&g);
-    let v_mins: DashMap<N, N> = get_vmins(&neighborhoods);
-
-
-    // create directed graph h
-    let mut h: DiGraphMap<N, ()> = DiGraphMap::new();
-
-
-    //add edges
-    let mut nodes: HashSet<N> = g.nodes().collect();
-    
-    let mut neighborhoods_entries: Vec<_> = neighborhoods.iter().collect();
-    neighborhoods_entries.sort_by(|a, b| a.key().cmp(b.key()));
-
-    for entry in neighborhoods_entries{
-        let &&n = &entry.key();
-        let &neighbors = &entry.value();
-
-        if !nodes.contains(&n){
-            continue;
-        }
-
-        println!("MS: visiting node: {:?}", n);
-
-        let n_min = *v_mins.get(&n).unwrap();
-        
-        //when a node is the minimum of its neighbourhood, it does not need to notify this information to its neighbours
-        if n == n_min{
-            for z in neighbors {
-                let z_min = *v_mins.get(&z).unwrap();
-                
-                //when a node u is the local minimum in NN(u), [u = u_min] there are two exclusive cases
-                if z_min == n_min{
-                    h.add_edge(*z, n, ());
-                }
-                else{
-                    h.add_edge(*z, z_min, ());
-                    h.add_edge(n, z_min, ());
-                }
-                nodes.remove(&z);
-            } 
-        }
-        else{
-            //h.add_edge(n, n_min, ()); => get_neighborhood return <neighbors + node>
-            for node in neighbors {
-                //println!("adding: {:?} -> {:?}", node, v_min);
-                h.add_edge(*node, n_min, ());
-            }
-        }
-
-        nodes.remove(&n);
-    }
-
-    return h;
-}
-*/
-
-
 // with Edge Pruning
 pub fn min_selection_ep<N>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()> 
     where N: NodeTrait + Eq + Send + Sync + Debug {
@@ -217,7 +153,6 @@ pub fn min_selection_ep<N>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()>
                 //println!("adding: {:?} -> {:?}", node, v_min);
                 h.add_edge(*node, n_min, ());
                 //println!("[caso C] adding edge {:?}->{:?}", *node, n_min);
-
             }
         }
     }
@@ -426,11 +361,9 @@ pub fn seed_propagation<V: NodeTrait + Debug>(tree: DiGraphMap<V, ()>) -> HashMa
     let mut res: HashMap<V, V> = HashMap::new();
 
     let mut nodes: Vec<V> = tree.nodes().collect();
-    //assert_eq!(nodes.len(), tree.node_count());
-    //println!("Nodes: {:?}", nodes);
     nodes.sort_unstable();  //no duplicates => can use unstable sorting => more efficient
 
-    while nodes.len() != 0 {    
+    while nodes.len() != 0 {
         let min_node = nodes[0];        //sorted nodes => min node will always be the 1st
         let incoming_edge = tree.edges_directed(min_node, Incoming);    //either 0 or 1 edge
         //println!("{:?}", incoming_edge);
