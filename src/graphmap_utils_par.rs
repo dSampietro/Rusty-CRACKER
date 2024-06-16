@@ -160,27 +160,6 @@ pub fn min_selection_ep<N>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()>
 }
 
 
-
-
-//DEPRECATED
-fn get_outgoing_neighborhood_seq<N: NodeTrait + Send + Sync>(h: &DiGraphMap<N, ()>) -> DashMap<N, Vec<N>>{
-    let outgoing_neighborhoods: DashMap<N, Vec<N>> = DashMap::new();
-    
-    for n in h.nodes(){
-        //outgoing_neighbour = {v | (u->v) € H}
-        let mut local_outgoing = Vec::<N>::new();
-
-        for dest in h.neighbors_directed(n, Outgoing){
-            local_outgoing.push(dest);
-        }
-
-        outgoing_neighborhoods.insert(n, local_outgoing);
-    }
-
-    return outgoing_neighborhoods;
-}
-
-
 fn get_outgoing_neighborhood<N: NodeTrait + Send + Sync>(h: &DiGraphMap<N, ()>) -> DashMap<N, Vec<N>>{
     let outgoing_neighborhoods: DashMap<N, Vec<N>> = DashMap::new();
     
@@ -208,7 +187,6 @@ fn get_outgoing_neighborhood<N: NodeTrait + Send + Sync>(h: &DiGraphMap<N, ()>) 
 
     return outgoing_neighborhoods;
 }
-
 
 
 pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tree: DiGraphMap<N, ()>) -> (UnGraphMap<N, ()>, DiGraphMap<N, ()>) {
