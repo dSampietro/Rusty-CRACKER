@@ -92,7 +92,7 @@ pub fn min_selection_base<N>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()>
         // base
         h.add_edge(u, v_min, ());
         for node in neighbors {
-            //println!("[h] adding: {:?} -> {:?}", node, v_min);
+            //eprintln!("[h] adding: {:?} -> {:?}", node, v_min);
             h.add_edge(node, v_min, ());
         }
     }
@@ -133,26 +133,26 @@ pub fn min_selection_ep<N>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()>
                 //when a node u is the local minimum in NN(u), [u = u_min] there are two exclusive cases
                 if z_min == n{
                     h.add_edge(*z, n, ());
-                    //println!("[caso A] adding edge {:?}->{:?}", *z, n);
+                    //eprintln!("[caso A] adding edge {:?}->{:?}", *z, n);
                 }
                 else{
                     h.add_edge(*z, z_min, ());
-                    //println!("[caso B] adding edge {:?}->{:?}", *z, z_min);
+                    //eprintln!("[caso B] adding edge {:?}->{:?}", *z, z_min);
 
                     h.add_edge(n, z_min, ());
-                    //println!("[caso B] adding edge {:?}->{:?}", n, z_min);
+                    //eprintln!("[caso B] adding edge {:?}->{:?}", n, z_min);
                 }
 
-                //println!("removing {:?}", &z);
+                //eprintln!("removing {:?}", &z);
             } 
         }
         else{    
             h.add_edge(n, n_min, ());   // => get_neighborhood return <neighbors + node>
-            //println!("[caso C] adding edge {:?}->{:?}", n, n_min);
+            //eprintln!("[caso C] adding edge {:?}->{:?}", n, n_min);
             for node in neighbors {
-                //println!("adding: {:?} -> {:?}", node, v_min);
+                //eprintln!("adding: {:?} -> {:?}", node, v_min);
                 h.add_edge(*node, n_min, ());
-                //println!("[caso C] adding edge {:?}->{:?}", *node, n_min);
+                //eprintln!("[caso C] adding edge {:?}->{:?}", *node, n_min);
             }
         }
     }
@@ -190,7 +190,7 @@ fn get_outgoing_neighborhood<N: NodeTrait + Send + Sync>(h: &DiGraphMap<N, ()>) 
 
 
 pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tree: DiGraphMap<N, ()>) -> (UnGraphMap<N, ()>, DiGraphMap<N, ()>) {
-    //println!("Pruning");
+    //eprintln!("Pruning");
     //get outgoing neighborhoods
     let outgoing_neighborhoods: DashMap<N, Vec<N>> = get_outgoing_neighborhood(&h);
 
@@ -221,7 +221,7 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tr
                 if *v != v_min{
                     pruned_graph_mutex.lock().unwrap()
                         .add_edge(*v, v_min, ());
-                    //println!("[g]: adding edge {:?} -> {:?}", *v, v_min);
+                    //eprintln!("[g]: adding edge {:?} -> {:?}", *v, v_min);
                 }
             }
         }
@@ -229,9 +229,9 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tr
         //deactivate nodes 
         if !neighbors.contains(u) {
             let v_min_opt = min_outgoing_neighborhoods.get(&u);
-            //println!("v_min_opt: {:?}", v_min_opt);
+            //eprintln!("v_min_opt: {:?}", v_min_opt);
             if v_min_opt.is_none(){
-                //println!("min_outgoing_neighborhoods: do not found u");
+                //eprintln!("min_outgoing_neighborhoods: do not found u");
                 return;
             }
 
@@ -239,7 +239,7 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tr
             tree_mutex.lock().unwrap()
                 .add_edge(v_min, *u, ());
 
-            //println!("Adding to tree: {:?} -> {:?}", v_min, *u);
+            //eprintln!("Adding to tree: {:?} -> {:?}", v_min, *u);
             deactivated_nodes_mutex.lock().unwrap()
                 .push(*u);
         }
@@ -259,7 +259,7 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tr
     let tree = tree_mutex.into_inner().unwrap();
 
     for deactivated in deactivated_nodes{
-        //println!("Removing node: {:?}", deactivated);
+        //eprintln!("Removing node: {:?}", deactivated);
         pruned_graph.remove_node(deactivated);
     }
 
@@ -325,10 +325,10 @@ pub fn prune_os<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>,
     let mut pruned_graph = pruned_graph_mutex.into_inner().unwrap();
     let tree = tree_mutex.into_inner().unwrap();
 
-    //println!("pruned_graph: {:?}", pruned_graph);
+    //eprintln!("pruned_graph: {:?}", pruned_graph);
 
     for deactivated in deactivated_nodes{
-        //println!("Removing node: {:?}", deactivated);
+        //eprintln!("Removing node: {:?}", deactivated);
         pruned_graph.remove_node(deactivated);
     }
 
@@ -344,10 +344,10 @@ pub fn seed_propagation<V: NodeTrait + Debug>(tree: DiGraphMap<V, ()>) -> HashMa
     while nodes.len() != 0 {
         let min_node = nodes[0];        //sorted nodes => min node will always be the 1st
         let incoming_edge = tree.edges_directed(min_node, Incoming);    //either 0 or 1 edge
-        //println!("{:?}", incoming_edge);
+        //eprintln!("{:?}", incoming_edge);
 
         for edge in incoming_edge{
-            //println!("Node {:?}, edge {:?}", min_node, edge);
+            //eprintln!("Node {:?}, edge {:?}", min_node, edge);
 
             if res.contains_key(&edge.0){
                 let parent_seed = res.get(&edge.0).unwrap();

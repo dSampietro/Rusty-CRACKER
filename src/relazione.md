@@ -3,7 +3,16 @@ Il progetto prevede l'implementazione multithreaded id un algoritmo per grafi.
 Perciò le librerie usate sono state *rayon*, per gestire il parallelismo e *petgraph* per ottenere strutture e funzione per grafi.
 
 # Schema di parallelismo
-*Rayon* offre la creazione di un ThreadPool globale di dimensione fissata. Quando è richiesta la parallelizazione di una attività, vengono usati tali thread.
+Esistono diversi modi per gestire il multithreading in Rust: thread (nativi), Rayon e Tokio.
+
+Tokio è stata esclusa perchè il focus è più verso operazione asincrone (networking) che data processing.
+
+I thread nativi, oltre ad essere meno facili da usare, hanno presentato il problema di come accedere alle strutture su cui operare. 
+*Rayon* risolve questo offrendo un iteratore parallelo.
+
+
+Inoltre *Rayon* offre la creazione di un ThreadPool globale di dimensione fissata. Quando è richiesta la parallelizazione di una attività, vengono usati tali thread.
+
 
 # Strutture dati
 La libreria *petgraph* offre diversi modi per rappresentare un grafo. La principale è *Graph*. 

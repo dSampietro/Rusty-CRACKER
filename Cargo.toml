@@ -5,47 +5,18 @@ edition = "2021"
 
 [dependencies]
 dashmap = "5.5.3"
+dhat = "0.3.3"
 getopts = "0.2.21"
-itertools = "0.13.0"
+#itertools = "0.13.0"
 petgraph = "0.6.5"
 rayon = "1.10.0"
+
+[profile.release]
+debug = 1
+
+[features]
+dhat-heap = []    # if you are doing heap profiling
 
 [[bin]]
 name = "main"
 path = "src/main.rs"
-
-#[[bin]]
-#name = "graphmap"
-#path = "src/sketches/graphmap.rs"
-
-#[[bin]]
-#name = "generalized_graph"
-#path = "src/sketches/generalized_graph.rs"
-
-#[[bin]]
-#name = "filtermap"
-#path = "src/sketches/filtermap.rs"
-
-#[[bin]]
-#name = "parallel_graph"
-#path = "src/sketches/parallel_graph.rs"
-
-#[[bin]]
-#name = "pruning_test"
-#path = "src/sketches/pruning_test.rs"
-
-#[[bin]]
-#name = "dashmap"
-#path = "src/sketches/dashmap.rs"
-
-#[[bin]]
-#name = "input_util"
-#path = "src/input_util.rs"
-
-#[[bin]]
-#name = "tree_propagation"
-#path = "src/sketches/tree_propagation.rs"
-
-[[bin]]
-name = "cli_parse"
-path = "src/sketches/cli_parse.rs"

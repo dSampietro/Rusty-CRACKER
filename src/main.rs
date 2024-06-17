@@ -1,3 +1,7 @@
+#[cfg(feature = "dhat-heap")]
+#[global_allocator]
+static ALLOC: dhat::Alloc = dhat::Alloc;
+
 use std::{collections::HashSet, env};
 use getopts::Options;
 use petgraph::graphmap::{DiGraphMap, UnGraphMap};
@@ -9,10 +13,12 @@ mod input_util;
 use input_util::read_from_file;
 use rayon::ThreadPoolBuilder;
 
-
 // ~20 ms / 50k edges
 
 fn main() {
+    #[cfg(feature = "dhat-heap")]
+    let _profiler = dhat::Profiler::new_heap();
+
     env::set_var("RUST_BACKTRACE", "1");
     
     type V = u16;
@@ -92,12 +98,12 @@ fn main() {
     }
 
     let seeds = seed_propagation(t);
-    //println!("seeds: {seeds:?}");
     
     println!("duration: {:?}", now.elapsed());
     
     println!("t: {num_it}");
     assert_eq!(seeds.len(), graph.node_count());    //all node have a seed => no nodes are lost
+    //println!("seeds: {seeds:?}");
     
     let num_conn_comp: HashSet<_> = seeds.values().collect();
     println!("#CC: {:?}\num_conn_comp: {:?}", num_conn_comp.len(), num_conn_comp);
