@@ -44,19 +44,9 @@ where
 
 /// Get the min neighbor of every node
 pub fn get_vmins<V: NodeTrait + Send + Sync + Copy>(neighborhoods: &DashMap<V, Vec<V>>) -> DashMap<V, V>{
-    let entries: Vec<_> = neighborhoods.iter().collect();
-
-    /*let v_mins: DashMap<V, V> = entries.iter()
-        .filter_map(|(&node, neighbors)|{
-            neighbors.into_iter()
-                .min()
-                .map(|&v_min| (node, v_min))
-        })
-        .collect();
-    */
-
     let v_mins: DashMap<V, V> = DashMap::new();
-
+    
+    let entries: Vec<_> = neighborhoods.iter().collect();
     entries.par_iter().for_each(|entry| {
         let (&key, vec) = entry.pair();
         if let Some(&min_value) = vec.iter().min() {
@@ -238,9 +228,11 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tr
             let v_min = *v_min_opt.unwrap();
             tree_mutex.lock().unwrap()
                 .add_edge(v_min, *u, ());
-
             //eprintln!("Adding to tree: {:?} -> {:?}", v_min, *u);
-            deactivated_nodes_mutex.lock().unwrap()
+
+            deactivated_nodes_mutex
+                .lock()
+                .unwrap()
                 .push(*u);
         }
 
@@ -319,7 +311,9 @@ pub fn prune_os<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>,
         }*/
     });
 
-    let mut deactivated_nodes = deactivated_nodes_mutex.into_inner().unwrap_or(Vec::new());
+    let mut deactivated_nodes = deactivated_nodes_mutex
+        .into_inner()
+        .unwrap_or(Vec::new());
     deactivated_nodes.sort_unstable_by(|a, b| b.cmp(a));    //sort + reverse
 
     let mut pruned_graph = pruned_graph_mutex.into_inner().unwrap();
@@ -336,11 +330,12 @@ pub fn prune_os<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>,
 }
 
 pub fn seed_propagation<V: NodeTrait + Debug>(tree: DiGraphMap<V, ()>) -> HashMap<V, V>{
-    let mut res: HashMap<V, V> = HashMap::new();
+    let mut seeds_map: HashMap<V, V> = HashMap::new();
 
     let mut nodes: Vec<V> = tree.nodes().collect();
     nodes.sort_unstable();  //no duplicates => can use unstable sorting => more efficient
 
+    //while + removal
     while nodes.len() != 0 {
         let min_node = nodes[0];        //sorted nodes => min node will always be the 1st
         let incoming_edge = tree.edges_directed(min_node, Incoming);    //either 0 or 1 edge
@@ -349,22 +344,22 @@ pub fn seed_propagation<V: NodeTrait + Debug>(tree: DiGraphMap<V, ()>) -> HashMa
         for edge in incoming_edge{
             //eprintln!("Node {:?}, edge {:?}", min_node, edge);
 
-            if res.contains_key(&edge.0){
-                let parent_seed = res.get(&edge.0).unwrap();
-                res.insert(min_node, *parent_seed);
+            if seeds_map.contains_key(&edge.0){
+                let parent_seed = seeds_map.get(&edge.0).unwrap();
+                seeds_map.insert(min_node, *parent_seed);
             }
             else{
-                res.insert(min_node, edge.0);
+                seeds_map.insert(min_node, edge.0);
             }
         }
 
         //no incoming edge into node => node is root of a tree
-        if res.contains_key(&min_node) == false{
-            res.insert(min_node, min_node);
+        if seeds_map.contains_key(&min_node) == false{
+            seeds_map.insert(min_node, min_node);
         }
 
         nodes.remove(0);
     }
 
-    return res;
+    return seeds_map;
 }
