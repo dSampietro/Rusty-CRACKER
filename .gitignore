@@ -1,2 +1,4 @@
 *.json
-target/
+target/debug
+target/release
+target/CACHEDIR.TAG
