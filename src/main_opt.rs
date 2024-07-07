@@ -3,13 +3,11 @@ use getopts::Options;
 use petgraph::graphmap::{DiGraphMap, UnGraphMap};
 
 mod graphmap_utils_par;
-use graphmap_utils_par::{min_selection_ep, prune, seed_propagation};
+use graphmap_utils_par::{as_directed, min_selection_ep, prune_os, seed_propagation};
 
 mod input_util;
 use input_util::read_from_file;
 use rayon::ThreadPoolBuilder;
-
-// ~20 ms / 50k edges
 
 macro_rules! debug_println {
     ($($arg:tt)*) => (if ::std::cfg!(debug_assertions) { ::std::println!($($arg)*); })
@@ -69,7 +67,7 @@ fn main() {
         tree.add_node(n);
     }
 
-    let mut gt = graph.clone();
+    let mut gt = as_directed(&graph);   //rendere orientato tc successivamnete si può riusare
     let mut t = tree.clone();
 
     let mut num_it = 1;
@@ -81,11 +79,11 @@ fn main() {
         //min selection
         let h = min_selection_ep(&gt);
         debug_println!("h_{:?} #edges: {:?}", num_it, h.edge_count());
-
         //pruning
-        let (temp_g, tree) = prune(h, t);
+        let (temp_g, tree) = prune_os(h, t);
         
         gt = temp_g;
+
         t = tree;
 
         if gt.edge_count() == 0 {    
@@ -93,15 +91,16 @@ fn main() {
         }
 
         num_it += 1;
-        debug_println!("g_{:?} #edges: {:?}", num_it, 2*gt.edge_count());
+        debug_println!("g_{:?} #edges: {:?}", num_it, gt.edge_count());
     }
 
     let seeds = seed_propagation(t);
     println!("{:?}", now.elapsed().as_millis());
     debug_println!("duration: {:?}", now.elapsed());
     
-    debug_println!("t: {num_it}");
     assert_eq!(seeds.len(), graph.node_count());    //all node have a seed => no nodes are lost
+    
+    debug_println!("t: {num_it}");
     //debug_println!("seeds: {seeds:?}");
     
     let num_conn_comp: HashSet<_> = seeds.values().collect();
