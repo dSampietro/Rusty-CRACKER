@@ -1,11 +1,12 @@
 #![allow(dead_code)] 
+#![allow(clippy::needless_return)]
 
 use std::{collections::HashMap, fmt::Debug, sync::Mutex};
 use dashmap::DashMap;
-use petgraph::{ graphmap::{DiGraphMap, GraphMap, NodeTrait, UnGraphMap}, Direction::{Incoming, Outgoing}, EdgeType};
+use petgraph::{graphmap::{DiGraphMap, GraphMap, NodeTrait, UnGraphMap}, Direction::{Incoming, Outgoing}, EdgeType};
 use rayon::prelude::*;
 
-/// Get the neighborhood (plus itself) of every node
+/// Get the closed neighbourhood (neighborhood + node) of every node
 fn get_neighborhood<V, E, Ty>(g: &GraphMap<V, E, Ty>) -> DashMap<V, Vec<V>>
 where
     V: NodeTrait + Send + Sync,
@@ -15,8 +16,9 @@ where
     
     let nodes: Vec<V> = g.nodes().collect();
 
+    // considerare come vicini nodi tc esiste arco uscente da n
     nodes.par_iter().for_each(|&node|{
-        let mut node_neighbors: Vec<V> = g.neighbors(node).collect();
+        let mut node_neighbors: Vec<V> = g.neighbors_directed(node, Outgoing).collect();
         node_neighbors.push(node);  //plus itself
         neighbors.insert(node, node_neighbors);
     });
@@ -24,7 +26,7 @@ where
     return neighbors;
 }
 
-
+/// Get the neighborhood of every node
 fn get_neighborhood_base<V, E, Ty>(g: &GraphMap<V, E, Ty>) -> DashMap<V, Vec<V>>
 where
     V: NodeTrait + Send + Sync,
@@ -46,7 +48,9 @@ where
 pub fn get_vmins<V: NodeTrait + Send + Sync + Copy>(neighborhoods: &DashMap<V, Vec<V>>) -> DashMap<V, V>{
     let v_mins: DashMap<V, V> = DashMap::new();
     
+    //TODO: direct iteration
     let entries: Vec<_> = neighborhoods.iter().collect();
+
     entries.par_iter().for_each(|entry| {
         let (&key, vec) = entry.pair();
         if let Some(&min_value) = vec.iter().min() {
@@ -92,8 +96,8 @@ pub fn min_selection_base<N>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()>
 
 
 // with Edge Pruning
-pub fn min_selection_ep<N>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()> 
-    where N: NodeTrait + Eq + Send + Sync + Debug {
+pub fn min_selection_ep<N, D>(g: &GraphMap<N, (), D>) -> DiGraphMap<N, ()> 
+    where N: NodeTrait + Eq + Send + Sync + Debug, D: EdgeType + Send + Sync {
 
     let neighborhoods: DashMap<N, Vec<N>> = get_neighborhood_base(&g);
     let v_mins: DashMap<N, N> = get_vmins(&neighborhoods);
@@ -196,7 +200,7 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tr
 
     //add to G(t+1) + deactivation
     let deactivated_nodes_mutex: Mutex<Vec<N>> = Mutex::new(Vec::new()); 
-    let entries: Vec<_> = outgoing_neighborhoods.iter().collect();
+    let entries: Vec<_> = outgoing_neighborhoods.iter().collect();     //TODO: direct iteration
     let pruned_graph_mutex = Mutex::new(pruned_graph);
 
     let tree_mutex = Mutex::new(tree);
@@ -205,7 +209,7 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tr
         let (u, neighbors) = entry.pair();
 
         if neighbors.len() > 1 {
-            let v_min = *min_outgoing_neighborhoods.get(&u).unwrap();
+            let v_min = *min_outgoing_neighborhoods.get(u).unwrap();
             
             for v in neighbors{
                 if *v != v_min{
@@ -258,7 +262,6 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tr
     return (pruned_graph, tree);
 }
 
-
 pub fn prune_os<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tree: DiGraphMap<N, ()>) -> (DiGraphMap<N, ()>, DiGraphMap<N, ()>) {
     //get outgoing neighborhoods
     let outgoing_neighborhoods: DashMap<N, Vec<N>> = get_outgoing_neighborhood(&h);
@@ -270,7 +273,7 @@ pub fn prune_os<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>,
 
     //add to G(t+1) + deactivation
     let deactivated_nodes_mutex: Mutex<Vec<N>> = Mutex::new(Vec::new()); 
-    let entries: Vec<_> = outgoing_neighborhoods.iter().collect();
+    let entries: Vec<_> = outgoing_neighborhoods.iter().collect();      //TODO: direct iteration
     let pruned_graph_mutex = Mutex::new(pruned_graph);
 
     let tree_mutex = Mutex::new(tree);
@@ -336,7 +339,7 @@ pub fn seed_propagation<V: NodeTrait + Debug>(tree: DiGraphMap<V, ()>) -> HashMa
     nodes.sort_unstable();  //no duplicates => can use unstable sorting => more efficient
 
     //while + removal
-    while nodes.len() != 0 {
+    while !nodes.is_empty() {
         let min_node = nodes[0];        //sorted nodes => min node will always be the 1st
         let incoming_edge = tree.edges_directed(min_node, Incoming);    //either 0 or 1 edge
         //eprintln!("{:?}", incoming_edge);
@@ -354,12 +357,41 @@ pub fn seed_propagation<V: NodeTrait + Debug>(tree: DiGraphMap<V, ()>) -> HashMa
         }
 
         //no incoming edge into node => node is root of a tree
-        if seeds_map.contains_key(&min_node) == false{
-            seeds_map.insert(min_node, min_node);
-        }
+        seeds_map
+            .entry(min_node)   // if min_node not in seeds_map 
+            .or_insert(min_node);   // insert
 
         nodes.remove(0);
     }
 
     return seeds_map;
+}
+
+
+/// transform an undirected graph into a directed one
+pub fn as_directed<N: NodeTrait + Send + Sync>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()> {
+    let mut res: DiGraphMap<N, ()> = DiGraphMap::with_capacity(g.node_count(), 2*g.edge_count());
+
+    for (a, b, _) in g.all_edges() {
+        res.add_edge(a, b, ());
+        res.add_edge(b, a, ());
+    }
+    
+    assert_eq!(res.edge_count(), 2 * g.edge_count());
+    return res;
+    /*
+    let nodes: Vec<_> = g.nodes().collect();
+    let res_mutex = Mutex::new(res);
+    nodes.par_iter().for_each(|&n| {
+        for e in g.neighbors(n){
+            res_mutex.lock().unwrap()
+                .add_edge(n, e, ());
+            
+            res_mutex.lock().unwrap()
+                .add_edge(e, n, ());
+        } 
+    });
+    
+    return res_mutex.into_inner().unwrap();
+    */
 }
