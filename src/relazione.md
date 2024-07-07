@@ -29,3 +29,9 @@ Una operazione frequente è l'inserimento/lettura da una *HashMap*. Invece di ge
 
 Inoltre data l'impossibilità di aggiungere dati ai nodi della *GraphMap*, il risultato della fase di Seed Propagation è salvato in una HashMap ({nodo: seed}).
 
+
+# Algoritmi
+La versione implementata è quella ottimazata con *Edge Pruning* e *Oblivious Seed*.
+
+
+Dato che OS restituisice un grafo orientato, i vicini di un nodo sono definiti come $NN_{G}(u) = \{v \vert (u -> v) \in G\}$
