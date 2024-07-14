@@ -38,5 +38,5 @@ fn parse_file<V: FromStr>(file: File) -> Vec<(V, V)>
         edges.push(edge);
     }
 
-    return edges;
+    edges
 }

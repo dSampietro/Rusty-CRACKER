@@ -4,15 +4,15 @@ import pandas as pd
 from typing import List
 
 
-def calc_avg(prog: str, files: List[str]) -> List[float]:
+def calc_avg(prog: str, files: List[str], n_runs = 5) -> List[float]:
     avg_times = []
 
     for f in files:
         run_times = []
         # Run the program 5 times
-        for i in range(0, 5):
+        for _ in range(0, n_runs):
             # Execute the command and capture the output
-            result = subprocess.run([f"./{prog}", "--f", f"../../files/{f}"], capture_output=True, text=True)
+            result = subprocess.run([f"./{prog}.exe", "--f", f"../../files/{f}"], capture_output=True, text=True)
             
             # Get the output
             time_output = result.stdout.strip()

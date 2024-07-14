@@ -11,9 +11,21 @@ petgraph = "0.6.5"
 rayon = "1.10.0"
 
 [[bin]]
+name = "main_base"
+path = "src/main_base.rs"
+
+[[bin]]
 name = "main"
 path = "src/main.rs"
 
 [[bin]]
+name = "main_opt"
+path = "src/main_opt.rs"
+
+[[bin]]
 name = "native_thread"
 path = "src/sketches/native_thread.rs"
+
+[[bin]]
+name = "big_graph_test"
+path = "src/big_graph_test.rs"

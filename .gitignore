@@ -2,3 +2,4 @@
 target/debug
 target/release
 target/CACHEDIR.TAG
+src/big_graph_test.rs

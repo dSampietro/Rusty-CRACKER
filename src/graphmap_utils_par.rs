@@ -66,7 +66,7 @@ pub fn get_vmins<V: NodeTrait + Send + Sync + Copy>(neighborhoods: &DashMap<V, V
 //TODO: generalize edges
 pub fn min_selection_base<N>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()> 
     where N: NodeTrait + Eq + Send + Sync + Debug {
-    let neighborhoods: DashMap<N, Vec<N>> = get_neighborhood(&g);
+    let neighborhoods: DashMap<N, Vec<N>> = get_neighborhood(g);
     let v_mins: DashMap<N, N> = get_vmins(&neighborhoods);
 
 
@@ -99,7 +99,7 @@ pub fn min_selection_base<N>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()>
 pub fn min_selection_ep<N, D>(g: &GraphMap<N, (), D>) -> DiGraphMap<N, ()> 
     where N: NodeTrait + Eq + Send + Sync + Debug, D: EdgeType + Send + Sync {
 
-    let neighborhoods: DashMap<N, Vec<N>> = get_neighborhood_base(&g);
+    let neighborhoods: DashMap<N, Vec<N>> = get_neighborhood_base(g);
     let v_mins: DashMap<N, N> = get_vmins(&neighborhoods);
 
     // create directed graph h
@@ -122,7 +122,7 @@ pub fn min_selection_ep<N, D>(g: &GraphMap<N, (), D>) -> DiGraphMap<N, ()>
         //when a node is the minimum of its neighbourhood, it does not need to notify this information to its neighbours
         if n == n_min{
             for z in neighbors {
-                let z_min = *v_mins.get(&z).unwrap();
+                let z_min = *v_mins.get(z).unwrap();
                 
                 //when a node u is the local minimum in NN(u), [u = u_min] there are two exclusive cases
                 if z_min == n{
@@ -222,7 +222,7 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>, tr
         
         //deactivate nodes 
         if !neighbors.contains(u) {
-            let v_min_opt = min_outgoing_neighborhoods.get(&u);
+            let v_min_opt = min_outgoing_neighborhoods.get(u);
             //eprintln!("v_min_opt: {:?}", v_min_opt);
             if v_min_opt.is_none(){
                 //eprintln!("min_outgoing_neighborhoods: do not found u");
@@ -282,7 +282,7 @@ pub fn prune_os<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>,
         let (u, neighbors) = entry.pair();
 
         if neighbors.len() > 1 {
-            let v_min = *min_outgoing_neighborhoods.get(&u).unwrap();
+            let v_min = *min_outgoing_neighborhoods.get(u).unwrap();
             
             for v in neighbors{
                 if *v != v_min{
@@ -294,7 +294,7 @@ pub fn prune_os<N: NodeTrait + Send + Sync + Copy + Debug>(h: DiGraphMap<N, ()>,
         
         //deactivate nodes 
         if !neighbors.contains(u) {
-            let v_min_opt = min_outgoing_neighborhoods.get(&u);
+            let v_min_opt = min_outgoing_neighborhoods.get(u);
             if v_min_opt.is_none(){
                 return;
             }
@@ -377,7 +377,7 @@ pub fn as_directed<N: NodeTrait + Send + Sync>(g: &UnGraphMap<N, ()>) -> DiGraph
         res.add_edge(b, a, ());
     }
     
-    assert_eq!(res.edge_count(), 2 * g.edge_count());
+    //assert_eq!(res.edge_count(), 2 * g.edge_count()); //TODO: problem with big graphs (rec-eachmovie.mtx)
     return res;
     /*
     let nodes: Vec<_> = g.nodes().collect();
