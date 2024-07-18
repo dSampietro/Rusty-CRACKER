@@ -7,8 +7,9 @@ edition = "2021"
 dashmap = "5.5.3"
 getopts = "0.2.21"
 #itertools = "0.13.0"
-petgraph = "0.6.5"
+petgraph = { version = "0.6.5", features = ["rayon"] }
 rayon = "1.10.0"
+#parking_lot = "0.12.3"
 
 [[bin]]
 name = "main_base"
@@ -26,6 +27,6 @@ path = "src/main_opt.rs"
 name = "native_thread"
 path = "src/sketches/native_thread.rs"
 
-[[bin]]
-name = "big_graph_test"
-path = "src/big_graph_test.rs"
+#[[bin]]
+#name = "big_graph_test"
+#path = "src/big_graph_test.rs"
