@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-dashmap = "5.5.3"
+dashmap = {version = "6.0.1", features = ["rayon"]}
 getopts = "0.2.21"
 #itertools = "0.13.0"
 petgraph = { version = "0.6.5", features = ["rayon"] }
