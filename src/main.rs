@@ -2,8 +2,8 @@ use getopts::Options;
 use petgraph::graphmap::{DiGraphMap, UnGraphMap};
 use std::{collections::HashSet, env};
 
-mod graphmap_utils_par;
-use graphmap_utils_par::{min_selection_ep, prune, seed_propagation};
+mod graphmap_utils_rayon;
+use graphmap_utils_rayon::{min_selection_ep, prune, seed_propagation};
 
 mod input_util;
 use input_util::read_from_file;
@@ -94,7 +94,7 @@ fn main() {
         gt = temp_g;
         t = tree;
 
-        if gt.edge_count() == 0 {
+        if gt.node_count() == 0 {
             break;
         }
 
@@ -108,7 +108,7 @@ fn main() {
 
     debug_println!("t: {num_it}");
     assert_eq!(seeds.len(), graph.node_count()); //all node have a seed => no nodes are lost
-                                                 //debug_println!("seeds: {seeds:?}");
+    //debug_println!("seeds: {seeds:?}");
 
     let num_conn_comp: HashSet<_> = seeds.values().collect();
     debug_println!(

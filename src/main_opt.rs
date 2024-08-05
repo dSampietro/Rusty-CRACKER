@@ -1,16 +1,30 @@
 use getopts::Options;
-use petgraph::graphmap::{DiGraphMap, UnGraphMap};
+use petgraph::graphmap::DiGraphMap;
 use std::{collections::HashSet, env};
 
 mod graphmap_utils_par;
-use graphmap_utils_par::{as_directed, min_selection_ep, prune_os, seed_propagation};
+use graphmap_utils_par::{min_selection_ep, prune_os, seed_propagation};
 
 mod input_util;
 use input_util::read_from_file;
+
 use rayon::ThreadPoolBuilder;
 
 macro_rules! debug_println {
     ($($arg:tt)*) => (if ::std::cfg!(debug_assertions) { ::std::println!($($arg)*); })
+}
+
+
+fn add_directed_edges<V: Copy>(und_edges: Vec<(V, V)>) -> Vec<(V,V)>{
+    let mut res: Vec<(V, V)> = Vec::with_capacity(2 * und_edges.len());
+
+    und_edges.iter().for_each(|t| {
+        res.push((t.0, t.1));
+        res.push((t.1, t.0));
+    });
+
+
+    return res;
 }
 
 fn main() {
@@ -66,14 +80,14 @@ fn main() {
     }
 
     let edges = edges_result.unwrap_or(Vec::new());
-    let graph: UnGraphMap<V, ()> = UnGraphMap::from_edges(&edges);
+    let graph: DiGraphMap<V, ()> = DiGraphMap::from_edges(add_directed_edges(edges));
 
     let mut tree = DiGraphMap::<V, ()>::new();
     for n in graph.nodes() {
         tree.add_node(n);
     }
 
-    let mut gt = as_directed(&graph); //rendere orientato tc successivamnete si può riusare
+    let mut gt = graph.clone();//as_directed(&graph); //rendere orientato tc successivamnete si può riusare
     let mut t = tree.clone();
 
     let mut num_it = 1;
@@ -92,7 +106,7 @@ fn main() {
 
         t = tree;
 
-        if gt.edge_count() == 0 {
+        if gt.node_count() == 0 {
             break;
         }
 
