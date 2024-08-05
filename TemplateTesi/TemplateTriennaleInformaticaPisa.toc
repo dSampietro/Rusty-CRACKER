@@ -1,8 +1,0 @@
-\select@language {italian}
-\select@language {italian}
-\thispagestyle {empty}
-\contentsline {chapter}{Introduzione}{1}
-\contentsline {chapter}{\numberline {1}Capitolo 1}{2}
-\contentsline {section}{\numberline {1.1}Sezione 1}{2}
-\contentsline {subsection}{\numberline {1.1.1}Sottosezione 1}{2}
-\contentsline {chapter}{Conclusioni}{3}
