@@ -9,7 +9,12 @@ getopts = "0.2.21"
 #itertools = "0.13.0"
 petgraph = { version = "0.6.5", features = ["rayon"] }
 rayon = "1.10.0"
+rustworkx-core = "0.15.1"
 #parking_lot = "0.12.3"
+
+[[bin]]
+name = "naive"
+path = "src/naive.rs"
 
 [[bin]]
 name = "main_base"
@@ -26,6 +31,10 @@ path = "src/main_opt.rs"
 [[bin]]
 name = "native_thread"
 path = "src/sketches/native_thread.rs"
+
+[[bin]]
+name = "size"
+path = "src/size.rs"
 
 #[[bin]]
 #name = "big_graph_test"
