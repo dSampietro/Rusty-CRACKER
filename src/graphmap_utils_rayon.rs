@@ -21,7 +21,6 @@ where
 {
     let neighbors = DashMap::<V, Vec<V>>::new();
 
-    
     // considerare come vicini nodi tc esiste arco uscente da n
     g.par_nodes().for_each(|node| {
         let mut node_neighbors: Vec<V> = g.neighbors_directed(node, Outgoing).collect();
