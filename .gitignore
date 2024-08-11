@@ -5,3 +5,4 @@ target/CACHEDIR.TAG
 src/big_graph_test.rs
 *.lock
 Cargo.lock
+src/size.rs

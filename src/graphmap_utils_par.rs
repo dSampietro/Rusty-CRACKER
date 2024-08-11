@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 #![allow(clippy::needless_return)]
 
 use dashmap::DashMap;
@@ -252,7 +251,7 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(
         }*/
     });
 
-    let deactivated_nodes = deactivated_nodes_mutex.into_inner().unwrap_or(Vec::new());
+    let deactivated_nodes = deactivated_nodes_mutex.into_inner().unwrap_or_default();
     //deactivated_nodes.sort_unstable_by(|a, b| b.cmp(a));    //sort + reverse
 
     let mut pruned_graph = pruned_graph_mutex.into_inner().unwrap();
@@ -317,7 +316,7 @@ pub fn prune_os<N: NodeTrait + Send + Sync + Copy + Debug>(
         }*/
     });
 
-    let mut deactivated_nodes = deactivated_nodes_mutex.into_inner().unwrap_or(Vec::new());
+    let mut deactivated_nodes = deactivated_nodes_mutex.into_inner().unwrap_or_default();
     deactivated_nodes.sort_unstable_by(|a, b| b.cmp(a)); //sort + reverse
 
     let mut pruned_graph = pruned_graph_mutex.into_inner().unwrap();
