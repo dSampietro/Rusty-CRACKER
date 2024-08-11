@@ -16,25 +16,40 @@ rustworkx-core = "0.15.1"
 name = "naive"
 path = "src/naive.rs"
 
+#par
 [[bin]]
-name = "main_base"
-path = "src/main_base.rs"
+name = "par_main_base"
+path = "src/par_main_base.rs"
 
 [[bin]]
-name = "main"
-path = "src/main.rs"
+name = "par_main"
+path = "src/par_main.rs"
 
 [[bin]]
-name = "main_opt"
-path = "src/main_opt.rs"
+name = "par_main_opt"
+path = "src/par_main_opt.rs"
+
+
+#rayon
+[[bin]]
+name = "rayon_main_base"
+path = "src/rayon_main_base.rs"
 
 [[bin]]
-name = "native_thread"
-path = "src/sketches/native_thread.rs"
+name = "rayon_main"
+path = "src/rayon_main.rs"
 
 [[bin]]
-name = "size"
-path = "src/size.rs"
+name = "rayon_main_opt"
+path = "src/rayon_main_opt.rs"
+
+#[[bin]]
+#name = "native_thread"
+#path = "src/sketches/native_thread.rs"
+
+#[[bin]]
+#name = "size"
+#path = "src/size.rs"
 
 #[[bin]]
 #name = "big_graph_test"

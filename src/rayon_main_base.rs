@@ -1,11 +1,13 @@
 use getopts::Options;
-use std::env;
+use petgraph::graphmap::{DiGraphMap, UnGraphMap};
+use std::{collections::HashSet, env};
+
+mod graphmap_utils_rayon;
+use graphmap_utils_rayon::{min_selection_base, prune, seed_propagation};
 
 mod input_util;
 use input_util::read_from_file;
-
-use rustworkx_core::{connectivity::{connected_components, number_connected_components}, petgraph::graphmap::UnGraphMap};
-
+use rayon::ThreadPoolBuilder;
 
 // ~20 ms / 50k edges
 
@@ -17,6 +19,13 @@ fn main() {
     env::set_var("RUST_BACKTRACE", "1");
 
     type V = u32;
+
+    //setup parallelism
+    let num_threads = 0; //let rayon decide
+    ThreadPoolBuilder::new()
+        .num_threads(num_threads)
+        .build_global()
+        .unwrap();
 
     //get cli args
     let args: Vec<String> = std::env::args().collect();
@@ -61,17 +70,51 @@ fn main() {
     let edges = edges_result.unwrap_or_default();
     let graph: UnGraphMap<V, ()> = UnGraphMap::from_edges(&edges);
 
+    let mut tree = DiGraphMap::<V, ()>::new();
+    for n in graph.nodes() {
+        tree.add_node(n);
+    }
+
+    let mut gt = graph.clone();
+    let mut t = tree.clone();
+
+    let mut num_it = 1;
 
     let now = std::time::Instant::now();
 
+    debug_println!("g_{:?} #edges: {:?}", num_it, gt.edge_count());
+    loop {
+        //min selection
+        let h = min_selection_base(&gt);
+        debug_println!("h_{:?} #edges: {:?}", num_it, gt.edge_count());
 
-    let components = connected_components(&graph);
-    let num_conn_comp = number_connected_components(&graph); 
+        //pruning
+        let (temp_g, tree) = prune(h, t);
 
+        gt = temp_g;
+        //println!("g{num_it}: {:?}", gt);
+        t = tree;
+
+        if gt.node_count() == 0 {
+            break;
+        }
+
+        num_it += 1;
+        debug_println!("g_{:?} #edges: {:?}", num_it, gt.edge_count());
+    }
+
+    let seeds = seed_propagation(t);
     println!("{:?}", now.elapsed().as_millis());
     debug_println!("duration: {:?}", now.elapsed());
 
-    assert_eq!(components.len(), num_conn_comp);
+    debug_println!("t: {num_it}");
+    assert_eq!(seeds.len(), graph.node_count()); //all node have a seed => no nodes are lost
+    //println!("seeds: {seeds:?}");
 
-    debug_println!("num_conn_comp: {:?}", num_conn_comp);
+    let num_conn_comp: HashSet<_> = seeds.values().collect();
+    debug_println!(
+        "#CC: {:?}\nnum_conn_comp: {:?}",
+        num_conn_comp.len(),
+        num_conn_comp
+    );
 }

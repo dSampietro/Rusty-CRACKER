@@ -2,8 +2,8 @@ use getopts::Options;
 use petgraph::graphmap::{DiGraphMap, UnGraphMap};
 use std::{collections::HashSet, env};
 
-mod graphmap_utils_rayon;
-use graphmap_utils_rayon::{min_selection_ep, prune, seed_propagation};
+mod graphmap_utils_par;
+use graphmap_utils_par::{min_selection_base, prune, seed_propagation};
 
 mod input_util;
 use input_util::read_from_file;
@@ -67,7 +67,7 @@ fn main() {
         return;
     }
 
-    let edges = edges_result.unwrap_or(Vec::new());
+    let edges = edges_result.unwrap_or_default();
     let graph: UnGraphMap<V, ()> = UnGraphMap::from_edges(&edges);
 
     let mut tree = DiGraphMap::<V, ()>::new();
@@ -85,13 +85,14 @@ fn main() {
     debug_println!("g_{:?} #edges: {:?}", num_it, gt.edge_count());
     loop {
         //min selection
-        let h = min_selection_ep(&gt);
-        debug_println!("h_{:?} #edges: {:?}", num_it, h.edge_count());
+        let h = min_selection_base(&gt);
+        debug_println!("h_{:?} #edges: {:?}", num_it, gt.edge_count());
 
         //pruning
         let (temp_g, tree) = prune(h, t);
 
         gt = temp_g;
+        //println!("g{num_it}: {:?}", gt);
         t = tree;
 
         if gt.node_count() == 0 {
@@ -99,7 +100,7 @@ fn main() {
         }
 
         num_it += 1;
-        debug_println!("g_{:?} #edges: {:?}", num_it, 2 * gt.edge_count());
+        debug_println!("g_{:?} #edges: {:?}", num_it, gt.edge_count());
     }
 
     let seeds = seed_propagation(t);
@@ -108,7 +109,7 @@ fn main() {
 
     debug_println!("t: {num_it}");
     assert_eq!(seeds.len(), graph.node_count()); //all node have a seed => no nodes are lost
-    //debug_println!("seeds: {seeds:?}");
+    //println!("seeds: {seeds:?}");
 
     let num_conn_comp: HashSet<_> = seeds.values().collect();
     debug_println!(

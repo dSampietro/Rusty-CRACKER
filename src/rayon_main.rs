@@ -1,30 +1,18 @@
 use getopts::Options;
-use petgraph::graphmap::DiGraphMap;
+use petgraph::graphmap::{DiGraphMap, UnGraphMap};
 use std::{collections::HashSet, env};
 
-mod graphmap_utils_par;
-use graphmap_utils_par::{min_selection_ep, prune_os, seed_propagation};
+mod graphmap_utils_rayon;
+use graphmap_utils_rayon::{min_selection_ep, prune, seed_propagation};
 
 mod input_util;
 use input_util::read_from_file;
-
 use rayon::ThreadPoolBuilder;
+
+// ~20 ms / 50k edges
 
 macro_rules! debug_println {
     ($($arg:tt)*) => (if ::std::cfg!(debug_assertions) { ::std::println!($($arg)*); })
-}
-
-
-fn add_directed_edges<V: Copy>(und_edges: Vec<(V, V)>) -> Vec<(V,V)>{
-    let mut res: Vec<(V, V)> = Vec::with_capacity(2 * und_edges.len());
-
-    und_edges.iter().for_each(|t| {
-        res.push((t.0, t.1));
-        res.push((t.1, t.0));
-    });
-
-
-    return res;
 }
 
 fn main() {
@@ -79,15 +67,15 @@ fn main() {
         return;
     }
 
-    let edges = edges_result.unwrap_or(Vec::new());
-    let graph: DiGraphMap<V, ()> = DiGraphMap::from_edges(add_directed_edges(edges));
+    let edges = edges_result.unwrap_or_default();
+    let graph: UnGraphMap<V, ()> = UnGraphMap::from_edges(&edges);
 
     let mut tree = DiGraphMap::<V, ()>::new();
     for n in graph.nodes() {
         tree.add_node(n);
     }
 
-    let mut gt = graph.clone();//as_directed(&graph); //rendere orientato tc successivamnete si può riusare
+    let mut gt = graph.clone();
     let mut t = tree.clone();
 
     let mut num_it = 1;
@@ -99,11 +87,11 @@ fn main() {
         //min selection
         let h = min_selection_ep(&gt);
         debug_println!("h_{:?} #edges: {:?}", num_it, h.edge_count());
+
         //pruning
-        let (temp_g, tree) = prune_os(h, t);
+        let (temp_g, tree) = prune(h, t);
 
         gt = temp_g;
-
         t = tree;
 
         if gt.node_count() == 0 {
@@ -111,16 +99,15 @@ fn main() {
         }
 
         num_it += 1;
-        debug_println!("g_{:?} #edges: {:?}", num_it, gt.edge_count());
+        debug_println!("g_{:?} #edges: {:?}", num_it, 2 * gt.edge_count());
     }
 
     let seeds = seed_propagation(t);
     println!("{:?}", now.elapsed().as_millis());
     debug_println!("duration: {:?}", now.elapsed());
 
-    assert_eq!(seeds.len(), graph.node_count()); //all node have a seed => no nodes are lost
-
     debug_println!("t: {num_it}");
+    assert_eq!(seeds.len(), graph.node_count()); //all node have a seed => no nodes are lost
     //debug_println!("seeds: {seeds:?}");
 
     let num_conn_comp: HashSet<_> = seeds.values().collect();
