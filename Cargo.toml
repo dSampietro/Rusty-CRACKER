@@ -6,11 +6,13 @@ edition = "2021"
 [dependencies]
 dashmap = {version = "6.0.1", features = ["rayon"]}
 getopts = "0.2.21"
-#itertools = "0.13.0"
 petgraph = { version = "0.6.5", features = ["rayon"] }
 rayon = "1.10.0"
 rustworkx-core = "0.15.1"
-#parking_lot = "0.12.3"
+
+#io_util = {path = "src/graphmap_utils_par.rs"}
+#graphmap_utils_par = {path = "src/graphmap_utils_par.rs"}
+#graphmap_utils_rayon = {path = "src/graphmap_utils_rayon.rs"}
 
 [[bin]]
 name = "naive"
@@ -42,15 +44,3 @@ path = "src/rayon_main.rs"
 [[bin]]
 name = "rayon_main_opt"
 path = "src/rayon_main_opt.rs"
-
-#[[bin]]
-#name = "native_thread"
-#path = "src/sketches/native_thread.rs"
-
-#[[bin]]
-#name = "size"
-#path = "src/size.rs"
-
-#[[bin]]
-#name = "big_graph_test"
-#path = "src/big_graph_test.rs"
