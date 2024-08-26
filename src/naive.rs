@@ -1,8 +1,8 @@
 use getopts::Options;
 use std::env;
 
-mod input_util;
-use input_util::read_from_file;
+mod io_util;
+use io_util::read_from_file;
 
 use rustworkx_core::{connectivity::{connected_components, number_connected_components}, petgraph::graphmap::UnGraphMap};
 

@@ -5,8 +5,8 @@ use std::{collections::HashSet, env};
 mod graphmap_utils_par;
 use graphmap_utils_par::{min_selection_base, prune, seed_propagation};
 
-mod input_util;
-use input_util::read_from_file;
+mod io_util;
+use io_util::read_from_file;
 use rayon::ThreadPoolBuilder;
 
 // ~20 ms / 50k edges

@@ -5,16 +5,12 @@ use std::{collections::HashSet, env};
 mod graphmap_utils_par;
 use graphmap_utils_par::{min_selection_ep, prune, seed_propagation};
 
-mod input_util;
-use input_util::read_from_file;
+#[macro_use]
+mod io_util;
+use io_util::read_from_file;
 use rayon::ThreadPoolBuilder;
 
 // ~20 ms / 50k edges
-
-macro_rules! debug_println {
-    ($($arg:tt)*) => (if ::std::cfg!(debug_assertions) { ::std::println!($($arg)*); })
-}
-
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
 

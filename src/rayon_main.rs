@@ -5,8 +5,8 @@ use std::{collections::HashSet, env};
 mod graphmap_utils_rayon;
 use graphmap_utils_rayon::{min_selection_ep, prune, seed_propagation};
 
-mod input_util;
-use input_util::read_from_file;
+mod io_util;
+use io_util::read_from_file;
 use rayon::ThreadPoolBuilder;
 
 // ~20 ms / 50k edges
@@ -41,9 +41,9 @@ fn main() {
     opts.optflag("h", "help", "print help menu");
 
     let matches = match opts.parse(&args[1..]) {
-        Ok(m) => m,
-        Err(f) => {
-            panic!("{}", f.to_string())
+        Ok(matches) => matches,
+        Err(fail) => {
+            panic!("{}", fail.to_string())
         }
     };
 

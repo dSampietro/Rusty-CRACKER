@@ -5,8 +5,8 @@ use std::{collections::HashSet, env};
 mod graphmap_utils_rayon;
 use graphmap_utils_rayon::{min_selection_ep, prune_os, seed_propagation};
 
-mod input_util;
-use input_util::read_from_file;
+mod io_util;
+use io_util::read_from_file;
 
 use rayon::ThreadPoolBuilder;
 
@@ -15,16 +15,20 @@ macro_rules! debug_println {
 }
 
 
-fn add_directed_edges<V: Copy>(und_edges: Vec<(V, V)>) -> Vec<(V,V)>{
-    let mut res: Vec<(V, V)> = Vec::with_capacity(2 * und_edges.len());
+fn add_directed_edges<V: Copy>(undirected_edges: Vec<(V, V)>) -> Vec<(V,V)>{
+    let mut res: Vec<(V, V)> = Vec::with_capacity(2 * undirected_edges.len());
 
-    und_edges.iter().for_each(|t| {
+    /*undirected_edges.().for_each(|t| {
         res.push((t.0, t.1));
         res.push((t.1, t.0));
-    });
+    });*/
 
+    for edge in undirected_edges {
+        res.push((edge.0, edge.1));
+        res.push((edge.1, edge.0));
+    }
 
-    return res;
+    res
 }
 
 fn main() {

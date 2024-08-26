@@ -5,8 +5,8 @@ use std::{collections::HashSet, env};
 mod graphmap_utils_par;
 use graphmap_utils_par::{min_selection_ep, prune_os, seed_propagation};
 
-mod input_util;
-use input_util::read_from_file;
+mod io_util;
+use io_util::read_from_file;
 
 use rayon::ThreadPoolBuilder;
 
@@ -24,7 +24,7 @@ fn add_directed_edges<V: Copy>(und_edges: Vec<(V, V)>) -> Vec<(V,V)>{
     });
 
 
-    return res;
+    res
 }
 
 fn main() {
