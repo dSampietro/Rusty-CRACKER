@@ -23,7 +23,7 @@ where
         neighbors.insert(node, node_neighbors);
     });
 
-    return neighbors;
+    neighbors
 }
 
 /// Get the neighborhood of every node
@@ -40,16 +40,13 @@ where
         neighbors.insert(node, node_neighbors);
     });
 
-    return neighbors;
+    neighbors
 }
 
 /// Get the min neighbor of every node
-pub fn get_vmins<V>(neighborhoods: &DashMap<V, Vec<V>>,) -> DashMap<V, V> 
-where V: NodeTrait + Send + Sync + Copy{
+fn get_vmins<V>(neighborhoods: &DashMap<V, Vec<V>>,) -> DashMap<V, V> 
+where V: NodeTrait + Send + Sync{
     let v_mins: DashMap<V, V> = DashMap::new();
-
-    //TODO: direct iteration
-    //let entries: Vec<_> = neighborhoods.iter().collect();
 
     neighborhoods.par_iter().for_each(|entry| {
         let &key = entry.key();
@@ -61,11 +58,9 @@ where V: NodeTrait + Send + Sync + Copy{
         }
     });
 
-    return v_mins;
+    v_mins
 }
 
-//DEPRECATED
-//TODO: generalize edges
 pub fn min_selection_base<N>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()>
 where
     N: NodeTrait + Eq + Send + Sync + Debug,
@@ -139,12 +134,11 @@ where
                     h.add_edge(n, z_min, ());
                     //eprintln!("[caso B] adding edge {:?}->{:?}", n, z_min);
                 }
-
                 //eprintln!("removing {:?}", &z);
             }
         } else {
             h.add_edge(n, n_min, ()); // => get_neighborhood return <neighbors + node>
-                                      //eprintln!("[caso C] adding edge {:?}->{:?}", n, n_min);
+            //eprintln!("[caso C] adding edge {:?}->{:?}", n, n_min);
             for node in neighbors {
                 //eprintln!("adding: {:?} -> {:?}", node, v_min);
                 h.add_edge(*node, n_min, ());
@@ -152,7 +146,7 @@ where
             }
         }
     }
-    return h;
+    h
 }
 
 fn get_outgoing_neighborhood<N: NodeTrait + Send + Sync>(
@@ -182,10 +176,10 @@ fn get_outgoing_neighborhood<N: NodeTrait + Send + Sync>(
         outgoing_neighborhoods.insert(n, local_outgoing);
     });
 
-    return outgoing_neighborhoods;
+    outgoing_neighborhoods
 }
 
-pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(
+pub fn prune<N: NodeTrait + Send + Sync + Debug>(
     h: DiGraphMap<N, ()>,
     tree: DiGraphMap<N, ()>,
 ) -> (UnGraphMap<N, ()>, DiGraphMap<N, ()>) {
@@ -204,7 +198,6 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(
 
     //add to G(t+1) + deactivation
     let deactivated_nodes_mutex: Mutex<Vec<N>> = Mutex::new(Vec::new());
-    //let entries: Vec<_> = outgoing_neighborhoods.iter().collect(); //TODO: direct iteration
     let pruned_graph_mutex = Mutex::new(pruned_graph);
 
     let tree_mutex = Mutex::new(tree);
@@ -257,10 +250,10 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(
         pruned_graph.remove_node(deactivated);
     }
 
-    return (pruned_graph, tree);
+    (pruned_graph, tree)
 }
 
-pub fn prune_os<N: NodeTrait + Send + Sync + Copy + Debug>(
+pub fn prune_os<N: NodeTrait + Send + Sync + Debug>(
     h: DiGraphMap<N, ()>,
     tree: DiGraphMap<N, ()>,
 ) -> (DiGraphMap<N, ()>, DiGraphMap<N, ()>) {
@@ -273,7 +266,6 @@ pub fn prune_os<N: NodeTrait + Send + Sync + Copy + Debug>(
 
     //add to G(t+1) + deactivation
     let deactivated_nodes_mutex: Mutex<Vec<N>> = Mutex::new(Vec::new());
-    //let entries: Vec<_> = outgoing_neighborhoods.iter().collect(); //TODO: direct iteration
     let pruned_graph_mutex = Mutex::new(pruned_graph);
 
     let tree_mutex = Mutex::new(tree);
@@ -324,7 +316,7 @@ pub fn prune_os<N: NodeTrait + Send + Sync + Copy + Debug>(
         pruned_graph.remove_node(deactivated);
     }
 
-    return (pruned_graph, tree);
+    (pruned_graph, tree)
 }
 
 pub fn seed_propagation<V: NodeTrait + Debug>(tree: DiGraphMap<V, ()>) -> HashMap<V, V> {
@@ -337,7 +329,7 @@ pub fn seed_propagation<V: NodeTrait + Debug>(tree: DiGraphMap<V, ()>) -> HashMa
     while !nodes.is_empty() {
         let min_node = nodes[0]; //sorted nodes => min node will always be the 1st
         let incoming_edge = tree.edges_directed(min_node, Incoming); //either 0 or 1 edge
-                                                                     //eprintln!("{:?}", incoming_edge);
+        //eprintln!("{:?}", incoming_edge);
 
         for edge in incoming_edge {
             //eprintln!("Node {:?}, edge {:?}", min_node, edge);
@@ -358,9 +350,10 @@ pub fn seed_propagation<V: NodeTrait + Debug>(tree: DiGraphMap<V, ()>) -> HashMa
         nodes.remove(0);
     }
 
-    return seeds_map;
+    seeds_map
 }
 
+/*
 /// transform an undirected graph into a directed one
 pub fn as_directed<N: NodeTrait + Send + Sync>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()> {
     let mut res: DiGraphMap<N, ()> = DiGraphMap::with_capacity(g.node_count(), 2 * g.edge_count());
@@ -371,7 +364,7 @@ pub fn as_directed<N: NodeTrait + Send + Sync>(g: &UnGraphMap<N, ()>) -> DiGraph
     }
 
     //assert_eq!(res.edge_count(), 2 * g.edge_count()); //TODO: problem with big graphs (rec-eachmovie.mtx)
-    return res;
+    res
     /*
     let nodes: Vec<_> = g.nodes().collect();
     let res_mutex = Mutex::new(res);
@@ -385,6 +378,7 @@ pub fn as_directed<N: NodeTrait + Send + Sync>(g: &UnGraphMap<N, ()>) -> DiGraph
         }
     });
 
-    return res_mutex.into_inner().unwrap();
+    res_mutex.into_inner().unwrap()
     */
 }
+*/
