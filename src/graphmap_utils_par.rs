@@ -1,5 +1,3 @@
-#![allow(clippy::needless_return)]
-
 use dashmap::DashMap;
 use petgraph::{
     graphmap::{DiGraphMap, GraphMap, NodeTrait, UnGraphMap},
@@ -27,7 +25,7 @@ where
         neighbors.insert(node, node_neighbors);
     });
 
-    return neighbors;
+    neighbors
 }
 
 /// Get the neighborhood of every node
@@ -46,7 +44,7 @@ where
         neighbors.insert(node, node_neighbors);
     });
 
-    return neighbors;
+    neighbors
 }
 
 /// Get the min neighbor of every node
@@ -66,7 +64,7 @@ pub fn get_vmins<V: NodeTrait + Send + Sync + Copy>(
         }
     });
 
-    return v_mins;
+    v_mins
 }
 
 //DEPRECATED
@@ -99,7 +97,7 @@ where
         }
     }
 
-    return h;
+    h
 }
 
 // with Edge Pruning
@@ -157,7 +155,7 @@ where
             }
         }
     }
-    return h;
+    h
 }
 
 fn get_outgoing_neighborhood<N: NodeTrait + Send + Sync>(
@@ -187,7 +185,7 @@ fn get_outgoing_neighborhood<N: NodeTrait + Send + Sync>(
         outgoing_neighborhoods.insert(n, local_outgoing);
     });
 
-    return outgoing_neighborhoods;
+    outgoing_neighborhoods
 }
 
 pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(
@@ -262,7 +260,7 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(
         pruned_graph.remove_node(deactivated);
     }
 
-    return (pruned_graph, tree);
+    (pruned_graph, tree)
 }
 
 pub fn prune_os<N: NodeTrait + Send + Sync + Copy + Debug>(
@@ -329,7 +327,7 @@ pub fn prune_os<N: NodeTrait + Send + Sync + Copy + Debug>(
         pruned_graph.remove_node(deactivated);
     }
 
-    return (pruned_graph, tree);
+    (pruned_graph, tree)
 }
 
 pub fn seed_propagation<V: NodeTrait + Debug>(tree: DiGraphMap<V, ()>) -> HashMap<V, V> {
@@ -363,9 +361,10 @@ pub fn seed_propagation<V: NodeTrait + Debug>(tree: DiGraphMap<V, ()>) -> HashMa
         nodes.remove(0);
     }
 
-    return seeds_map;
+    seeds_map
 }
 
+/*
 /// transform an undirected graph into a directed one
 pub fn as_directed<N: NodeTrait + Send + Sync>(g: &UnGraphMap<N, ()>) -> DiGraphMap<N, ()> {
     let mut res: DiGraphMap<N, ()> = DiGraphMap::with_capacity(g.node_count(), 2 * g.edge_count());
@@ -376,7 +375,7 @@ pub fn as_directed<N: NodeTrait + Send + Sync>(g: &UnGraphMap<N, ()>) -> DiGraph
     }
 
     //assert_eq!(res.edge_count(), 2 * g.edge_count()); //TODO: problem with big graphs (rec-eachmovie.mtx)
-    return res;
+    res
     /*
     let nodes: Vec<_> = g.nodes().collect();
     let res_mutex = Mutex::new(res);
@@ -390,6 +389,7 @@ pub fn as_directed<N: NodeTrait + Send + Sync>(g: &UnGraphMap<N, ()>) -> DiGraph
         }
     });
 
-    return res_mutex.into_inner().unwrap();
+    res_mutex.into_inner().unwrap()
     */
 }
+*/
