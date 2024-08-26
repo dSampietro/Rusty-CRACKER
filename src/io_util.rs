@@ -5,6 +5,11 @@ use std::{
     str::FromStr,
 };
 
+
+macro_rules! debug_println {
+    ($($arg:tt)*) => (if ::std::cfg!(debug_assertions) { ::std::println!($($arg)*); })
+}
+
 pub fn read_from_file<V: FromStr>(filename: &str) -> Result<Vec<(V, V)>, Error>
 where
     <V as FromStr>::Err: Debug,
