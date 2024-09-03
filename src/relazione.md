@@ -35,3 +35,18 @@ La versione implementata è quella ottimazata con *Edge Pruning* e *Oblivious Se
 
 
 Dato che OS restituisice un grafo orientato, i vicini di un nodo sono definiti come $NN_{G}(u) = \{v \vert (u -> v) \in G\}$
+
+
+# Ottimizzazioni (linguaggio)
+Negli accessi alle strutture indicizzate (Vec), Rust effettua dei [bound check](https://nnethercote.github.io/perf-book/bounds-checks.html). Sono stati evitati accessi diretti usando gli iteratori.
+
+
+
+
+
+
+
+
+
+
+*You cannot make software run faster. Ever. That’s not a thing. You can only make it do less work.*
