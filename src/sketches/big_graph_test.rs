@@ -1,5 +1,5 @@
-mod input_util;
-use input_util::read_from_file;
+
+use io_util::read_from_file;
 
 
 use std::collections::HashSet;
