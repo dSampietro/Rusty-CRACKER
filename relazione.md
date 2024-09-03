@@ -40,7 +40,7 @@ Dato che OS restituisice un grafo orientato, i vicini di un nodo sono definiti c
 # Ottimizzazioni (linguaggio)
 Negli accessi alle strutture indicizzate (Vec), Rust effettua dei [bound check](https://nnethercote.github.io/perf-book/bounds-checks.html). Sono stati evitati accessi diretti usando gli iteratori.
 
-
+Inoltre per evitare/minimizzare riallocazioni, dove possibile, tutte le strutture sono state inizializzate con una capacità (stimata).
 
 
 
