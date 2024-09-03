@@ -46,9 +46,9 @@ progs = ["naive",
          "rayon_main_base", "rayon_main", "rayon_main_opt"
         ]
 
-files = ["bio-diseasome.mtx", "soc-wiki-vote.mtx", "bio-CE-GN.mtx", "bio-HS-CX.mtx", "bio-grid-yeast.mtx", "facebook_artist.mtx"]#, "notredame.mtx", "amazon.mtx", "rec-eachmovie.mtx"]
-nodes = [516, 889, 2219, 4412, 6008, 50515]#, 325729, 334863, 74424] 
-edges = [1188, 2914, 53683, 108818, 313890, 819306]#, 1497134, 925872, 2811717]
+files = ["bio-diseasome.mtx", "soc-wiki-vote.mtx", "bio-CE-GN.mtx", "bio-HS-CX.mtx", "bio-grid-yeast.mtx", "facebook_artist.mtx", "notredame.mtx", "amazon.mtx", "rec-eachmovie.mtx"]
+nodes = [516, 889, 2219, 4412, 6008, 50515, 325729, 334863, 74424] 
+edges = [1188, 2914, 53683, 108818, 313890, 819306, 1497134, 925872, 2811717]
 
 
 info = pd.DataFrame()
@@ -73,8 +73,37 @@ info["rayon_ep+os"] = calc_avg(progs[6], files, N_RUNS)
 
 info = info.sort_values(by=["edges"])
 print(info)
+info.to_csv("info.csv")
 
 
+
+#Plotting
+fig, ax = plt.subplots(1, 2, sharey=True)
+
+#vs nodes
+info = info.sort_values(by=["nodes"])
+ax[0].plot(info["nodes"], info["rayon_base"], "--bx", label="(R)Base")
+ax[0].plot(info["nodes"], info["rayon_ep"],   "--rx", label="(R)EP")
+ax[0].plot(info["nodes"], info["rayon_ep+os"],"--cx", label="(R)EP+OS")
+ax[0].set_xlabel("#nodes")
+ax[0].set_ylabel("time[ms]")
+ax[0].legend(loc="best")
+
+#vs edges
+info = info.sort_values(by=["edges"])
+ax[1].plot(info["edges"], info["rayon_base"], "--bx", label="(R)Base")
+ax[1].plot(info["edges"], info["rayon_ep"],   "--rx", label="(R)EP")
+ax[1].plot(info["edges"], info["rayon_ep+os"],"--cx", label="(R)EP+OS")
+ax[1].set_xlabel("#edges")
+
+
+plt.show()
+
+
+
+
+
+'''
 #Plotting
 # vs edges
 
@@ -83,6 +112,7 @@ plt.ylabel("time [ms]")
 plt.xscale('log')
 
 plt.plot(info["edges"], info["naive"], ":yo", label="Naive")
+
 
 #plt.plot(info["edges"], info["par_base"], "--bo", label="(P)Base")
 #plt.plot(info["edges"], info["par_ep"], "--ro", label="(P)EP")
@@ -108,24 +138,9 @@ plt.plot(info["nodes"], info["rayon_ep+os"],"-.cx", label="(R)EP+OS")
 
 plt.legend(loc="best")
 plt.show()
-
+'''
 
 
 '''
 I tempi di ep+os sono leggermente maggiori di EP poichè OS aumenta il numero di iterazioni necessarie 
 '''
-
-
-
-
-# 3d plot 
-ax = plt.axes(projection='3d')
-
-import numpy as np
-x, y = np.meshgrid(info["nodes"], info["edges"])
-ax.plot_surface(x, y, info["rayon_base"], cmap='viridis')
-ax.set_xlabel("#nodes")
-ax.set_ylabel("#edges")
-ax.set_title('surface')
-
-plt.show()
