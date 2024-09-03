@@ -14,7 +14,7 @@ where
     E: Send + Sync,
     Ty: EdgeType + Send + Sync,
 {
-    let neighbors = DashMap::<V, Vec<V>>::new();
+    let neighbors = DashMap::<V, Vec<V>>::with_capacity(g.node_count());
 
     // considerare come vicini nodi tc esiste arco uscente da n
     g.par_nodes().for_each(|node| {
@@ -33,7 +33,7 @@ where
     E: Send + Sync,
     Ty: EdgeType + Send + Sync,
 {
-    let neighbors = DashMap::<V, Vec<V>>::new();
+    let neighbors = DashMap::<V, Vec<V>>::with_capacity(g.node_count());
 
     g.par_nodes().for_each(|node| {
         let node_neighbors: Vec<V> = g.neighbors(node).collect();
@@ -46,7 +46,7 @@ where
 /// Get the min neighbor of every node
 fn get_vmins<V>(neighborhoods: &DashMap<V, Vec<V>>,) -> DashMap<V, V> 
 where V: NodeTrait + Send + Sync{
-    let v_mins: DashMap<V, V> = DashMap::new();
+    let v_mins: DashMap<V, V> = DashMap::with_capacity(neighborhoods.len());
 
     neighborhoods.par_iter().for_each(|entry| {
         let &key = entry.key();
@@ -69,7 +69,7 @@ where
     let v_mins: DashMap<N, N> = get_vmins(&neighborhoods);
 
     // create directed graph h
-    let mut h: DiGraphMap<N, ()> = DiGraphMap::new();
+    let mut h: DiGraphMap<N, ()> = DiGraphMap::with_capacity(g.node_count(), g.edge_count());
 
     //add edges
     for (u, neighbors) in neighborhoods {
@@ -102,7 +102,7 @@ where
     let v_mins: DashMap<N, N> = get_vmins(&neighborhoods);
 
     // create directed graph h
-    let mut h: DiGraphMap<N, ()> = DiGraphMap::new();
+    let mut h: DiGraphMap<N, ()> = DiGraphMap::with_capacity(g.node_count(), g.edge_count());
 
     //add edges
     let mut neighborhoods_entries: Vec<_> = neighborhoods.iter().collect();
@@ -152,7 +152,7 @@ where
 fn get_outgoing_neighborhood<N: NodeTrait + Send + Sync>(
     h: &DiGraphMap<N, ()>,
 ) -> DashMap<N, Vec<N>> {
-    let outgoing_neighborhoods: DashMap<N, Vec<N>> = DashMap::new();
+    let outgoing_neighborhoods: DashMap<N, Vec<N>> = DashMap::with_capacity(h.node_count());
 
     /*for n in h.nodes(){
         //outgoing_neighbour = {v | (u->v) € H}
@@ -320,7 +320,7 @@ pub fn prune_os<N: NodeTrait + Send + Sync + Debug>(
 }
 
 pub fn seed_propagation<V: NodeTrait + Debug>(tree: DiGraphMap<V, ()>) -> HashMap<V, V> {
-    let mut seeds_map: HashMap<V, V> = HashMap::new();
+    let mut seeds_map: HashMap<V, V> = HashMap::with_capacity(tree.node_count());
 
     let mut nodes: Vec<V> = tree.nodes().collect();
     nodes.sort_unstable(); //no duplicates => can use unstable sorting => more efficient
