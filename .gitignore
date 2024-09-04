@@ -1,3 +1,4 @@
+env/
 *.json
 target/debug
 target/release
