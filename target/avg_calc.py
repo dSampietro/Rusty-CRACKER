@@ -46,9 +46,9 @@ progs = ["naive",
          "rayon_main_base", "rayon_main", "rayon_main_opt"
         ]
 
-files = ["bio-diseasome.mtx", "soc-wiki-vote.mtx", "bio-CE-GN.mtx", "bio-HS-CX.mtx", "bio-grid-yeast.mtx", "facebook_artist.mtx", "notredame.mtx", "amazon.mtx", "rec-eachmovie.mtx"]
-nodes = [516, 889, 2219, 4412, 6008, 50515, 325729, 334863, 74424] 
-edges = [1188, 2914, 53683, 108818, 313890, 819306, 1497134, 925872, 2811717]
+files = ["soc-wiki-vote.mtx", "bio-CE-GN.mtx", "bio-HS-CX.mtx", "bio-grid-yeast.mtx", "facebook_artist.mtx", "notredame.mtx", "amazon.mtx", "rec-eachmovie.mtx"]
+nodes = [889, 2219, 4412, 6008, 50515, 325729, 334863, 74424] 
+edges = [2914, 53683, 108818, 313890, 819306, 1497134, 925872, 2811717]
 
 
 info = pd.DataFrame()
@@ -61,9 +61,9 @@ info["density"] = 2 * info["edges"] / (info["nodes"] * (info["nodes"] - 1))
 N_RUNS = 5
 info["naive"] = calc_avg(progs[0], files, N_RUNS)
 
-#info["par_base"] = calc_avg(progs[1], files, N_RUNS)
-#info["par_ep"] = calc_avg(progs[2], files, N_RUNS)
-#info["par_ep+os"] = calc_avg(progs[3], files, N_RUNS)
+info["par_base"] = calc_avg(progs[1], files, N_RUNS)
+info["par_ep"] = calc_avg(progs[2], files, N_RUNS)
+info["par_ep+os"] = calc_avg(progs[3], files, N_RUNS)
 
 info["rayon_base"] = calc_avg(progs[4], files, N_RUNS)
 info["rayon_ep"] = calc_avg(progs[5], files, N_RUNS)
@@ -73,7 +73,7 @@ info["rayon_ep+os"] = calc_avg(progs[6], files, N_RUNS)
 
 info = info.sort_values(by=["edges"])
 print(info)
-info.to_csv("info.csv")
+info.to_csv(path_or_buf="info.csv", index=False)
 
 
 
@@ -99,46 +99,6 @@ ax[1].set_xlabel("#edges")
 
 plt.show()
 
-
-
-
-
-'''
-#Plotting
-# vs edges
-
-plt.xlabel("#edges")
-plt.ylabel("time [ms]")
-plt.xscale('log')
-
-plt.plot(info["edges"], info["naive"], ":yo", label="Naive")
-
-
-#plt.plot(info["edges"], info["par_base"], "--bo", label="(P)Base")
-#plt.plot(info["edges"], info["par_ep"], "--ro", label="(P)EP")
-#plt.plot(info["edges"], info["par_ep+os"], "--co", label="(P)EP+OS")
-
-plt.plot(info["edges"], info["rayon_base"], "-.bx", label="(R)Base")
-plt.plot(info["edges"], info["rayon_ep"],   "-.rx", label="(R)EP")
-plt.plot(info["edges"], info["rayon_ep+os"],"-.cx", label="(R)EP+OS")
-plt.legend(loc="best")
-plt.show()
-
-
-
-#vs nodes
-info = info.sort_values(by=["nodes"])
-plt.xlabel("#nodes")
-plt.ylabel("time [ms]")
-plt.xscale('log')
-
-plt.plot(info["nodes"], info["rayon_base"], "-.bx", label="(R)Base")
-plt.plot(info["nodes"], info["rayon_ep"],   "-.rx", label="(R)EP")
-plt.plot(info["nodes"], info["rayon_ep+os"],"-.cx", label="(R)EP+OS")
-
-plt.legend(loc="best")
-plt.show()
-'''
 
 
 '''
