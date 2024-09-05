@@ -32,30 +32,19 @@ fn main() {
 
     type V = u32;
 
-    //setup parallelism
-    let num_threads = 0; //let rayon decide
-    ThreadPoolBuilder::new()
-        .num_threads(num_threads)
-        .build_global()
-        .unwrap();
-
     //get cli args
     let args: Vec<String> = std::env::args().collect();
 
     //get opts
     let mut opts = Options::new();
-    opts.optopt(
-        "f",
-        "file",
-        "provide the file containg the graph output file name",
-        "FILEPATH",
-    );
+    opts.optopt("f", "file", "provide the file containg the graph output file name", "FILEPATH");
+    opts.optopt("n", "num_thread", "provide the number of threads to use", "0");
     opts.optflag("h", "help", "print help menu");
 
     let matches = match opts.parse(&args[1..]) {
-        Ok(m) => m,
-        Err(f) => {
-            panic!("{}", f.to_string())
+        Ok(matches) => matches,
+        Err(fail) => {
+            panic!("{}", fail.to_string())
         }
     };
 
@@ -67,6 +56,19 @@ fn main() {
         return;
     }
 
+    //handle -n/--num_threads
+    let num_threads = match matches.opt_str("n") {
+        None => 0,  //let rayon decide
+        Some(v) => v.parse().unwrap(),
+    };
+
+    //setup parallelism
+    ThreadPoolBuilder::new()
+        .num_threads(num_threads)
+        .build_global()
+        .unwrap();
+    
+    //handle -f/--filename
     let filename = matches.opt_str("f");
     if filename.is_none() {
         println!("Please provide a filename");
