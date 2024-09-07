@@ -1,8 +1,5 @@
 import networkx as nx
-import random
 
-from scipy.io import mmwrite
-from scipy.sparse import coo_matrix
 
 def create_graph(num_nodes: int, num_edges: int) -> nx.Graph:
     return nx.gnm_random_graph(num_nodes, num_edges)
@@ -22,10 +19,11 @@ def save_mtx(graph: nx.Graph, filename: str) -> None:
     adj_matrix = nx.to_scipy_sparse_array(graph, format='coo')
     mmwrite(filename, adj_matrix)
 '''
-# Example usage
-num_nodes = 50_00
 
-for num_edges in [50_000, 100_000, 200_000, 500_000, 1_000_000, 1_500_000, 2_000_000]:
+
+num_edges = 1_000_000 
+
+for num_nodes in [50_000, 100_000, 250_000, 500_000]:
     #num_edges = 1_000_000
     graph = create_graph(num_nodes, num_edges)
 
@@ -34,6 +32,6 @@ for num_edges in [50_000, 100_000, 200_000, 500_000, 1_000_000, 1_500_000, 2_000
     #assert graph.number_of_edges() == num_edges
 
 
-    save_mtx(graph, f"syn{graph.number_of_edges()}.mtx")
+    save_mtx(graph, f"syn_{num_nodes}_{graph.number_of_edges()}.mtx")
 
 print("completed")
