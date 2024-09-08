@@ -1,5 +1,34 @@
+# Descrizione datasets
+Per testare gli algoritmi, sono stati selezioni diversi datasets, sia grafi reali che sintetici.
+
+| Name            | Nodes    | Edges       | Avg Degree
+| ----            | ----:    | ----:       | ---- 
+| syn_50k_50k     | 50_000   | 50_000      | 2.31
+| syn_50k_100k    | 50_000   | 100_000     | 4.01
+| syn_50k_200k    | 50_000   | 200_000     | 8.03
+| syn_50k_500k    | 50_000   | 500_000     | 20
+| syn_50k_1M      | 50_000   | 1_000_000   | 40
+| syn_50k_1,5M    | 50_000   | 1_500_000   | 60
+| syn_50k_2M      | 50_000   | 2_000_000   | 80
+| syn_50k_1M      | 50_000   | 1_000_000   | 40
+| syn_100k_1M     | 100_000  | 1_000_000   | 20
+| syn_250k_1M     | 250_000  | 1_000_000   | 8
+| syn_500k_1M     | 500_000  | 1_000_000   | 4
+| soc-wiki-vote   | 889      | 2_914       |
+| bio-CE-GN       | 2_219    | 53_683      | 48
+| bio-HS-CX       | 4_412    | 108_818     |
+| bio-grid-yeast  | 6_008    | 313_890     |
+| facebook_artist | 50_515   | 819_306     |
+| notredame       | 325_729  | 1_497_134   |
+| amazon          | 334_863  | 925_872     | 5.53
+| rec-eachmovie   | 74_424   | 2_811_717   |
+
+
+
+
+
 # Librerie
-Il progetto prevede l'implementazione multithreaded id un algoritmo per grafi. 
+Il progetto prevede l'implementazione multithreaded di un algoritmo per grafi. 
 Perciò le librerie usate sono state *rayon*, per gestire il parallelismo e *petgraph* per ottenere strutture e funzione per grafi.
 
 # Schema di parallelismo
