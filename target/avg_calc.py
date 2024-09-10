@@ -42,8 +42,8 @@ def calc_avg(prog: str, files: List[str], n_runs = 5) -> List[float]:
 
 
 progs = ["naive", 
-         "par_main_base", "par_main", "par_main_opt",
-         "rayon_main_base", "rayon_main", "rayon_main_opt"
+         "par_main", "par_main_ep", "par_main_epos",
+         "rayon_main", "rayon_main_ep", "rayon_main_epos"
         ]
 '''
 files = ["soc-wiki-vote.mtx", "bio-CE-GN.mtx", "bio-HS-CX.mtx", "bio-grid-yeast.mtx", "facebook_artist.mtx", "notredame.mtx", "amazon.mtx", "rec-eachmovie.mtx"]

@@ -41,8 +41,8 @@ def calc_times_with_nThreads(prog: str, file: str, n_threads: List[int], n_runs 
 
 
 progs = ["naive", 
-         "par_main_base", "par_main", "par_main_opt",
-         "rayon_main_base", "rayon_main", "rayon_main_opt"
+         "par_main", "par_main_ep", "par_main_epos",
+         "rayon_main", "rayon_main_ep", "rayon_main_epos"
         ]
 
 
