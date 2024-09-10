@@ -34,13 +34,13 @@ path = "src/par_main_epos.rs"
 
 #rayon
 [[bin]]
-name = "rayon_main_base"
-path = "src/rayon_main_base.rs"
-
-[[bin]]
 name = "rayon_main"
 path = "src/rayon_main.rs"
 
 [[bin]]
-name = "rayon_main_opt"
-path = "src/rayon_main_opt.rs"
+name = "rayon_main_ep"
+path = "src/rayon_main_ep.rs"
+
+[[bin]]
+name = "rayon_main_epos"
+path = "src/rayon_main_epos.rs"

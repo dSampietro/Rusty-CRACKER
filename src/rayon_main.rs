@@ -3,7 +3,7 @@ use petgraph::graphmap::{DiGraphMap, UnGraphMap};
 use std::{collections::HashSet, env};
 
 mod graphmap_utils_rayon;
-use graphmap_utils_rayon::{min_selection_ep, prune, seed_propagation};
+use graphmap_utils_rayon::{min_selection_base, prune, seed_propagation};
 
 mod io_util;
 use io_util::read_from_file;
@@ -46,17 +46,15 @@ fn main() {
 
     //handle -n/--num_threads
     let num_threads = match matches.opt_str("n") {
-        None => 0,
+        None => 0,  //let rayon decide
         Some(v) => v.parse().unwrap(),
     };
 
     //setup parallelism
-    //let num_threads = 0; //let rayon decide
     ThreadPoolBuilder::new()
         .num_threads(num_threads)
         .build_global()
         .unwrap();
-
 
 
     //handle -f/--filename
@@ -90,13 +88,14 @@ fn main() {
     debug_println!("g_{:?} #edges: {:?}", num_it, gt.edge_count());
     loop {
         //min selection
-        let h = min_selection_ep(&gt);
-        debug_println!("h_{:?} #edges: {:?}", num_it, h.edge_count());
+        let h = min_selection_base(&gt);
+        debug_println!("h_{:?} #edges: {:?}", num_it, gt.edge_count());
 
         //pruning
         let (temp_g, tree) = prune(h, t);
 
         gt = temp_g;
+        //println!("g{num_it}: {:?}", gt);
         t = tree;
 
         if gt.node_count() == 0 {
@@ -104,7 +103,7 @@ fn main() {
         }
 
         num_it += 1;
-        debug_println!("g_{:?} #edges: {:?}", num_it, 2 * gt.edge_count());
+        debug_println!("g_{:?} #edges: {:?}", num_it, gt.edge_count());
     }
 
     let seeds = seed_propagation(t);
@@ -113,7 +112,7 @@ fn main() {
 
     debug_println!("t: {num_it}");
     assert_eq!(seeds.len(), graph.node_count()); //all node have a seed => no nodes are lost
-    //debug_println!("seeds: {seeds:?}");
+    //println!("seeds: {seeds:?}");
 
     let num_conn_comp: HashSet<_> = seeds.values().collect();
     debug_println!(
