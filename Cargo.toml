@@ -20,16 +20,16 @@ path = "src/naive.rs"
 
 #par
 [[bin]]
-name = "par_main_base"
-path = "src/par_main_base.rs"
-
-[[bin]]
 name = "par_main"
 path = "src/par_main.rs"
 
 [[bin]]
-name = "par_main_opt"
-path = "src/par_main_opt.rs"
+name = "par_main_ep"
+path = "src/par_main_ep.rs"
+
+[[bin]]
+name = "par_main_epos"
+path = "src/par_main_epos.rs"
 
 
 #rayon
