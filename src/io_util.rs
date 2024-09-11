@@ -33,10 +33,21 @@ where
     let mut lines = reader.lines();
     lines.next(); //skip first line
 
-    let graph_info = lines.next().unwrap().unwrap();
+    //let graph_info = lines.next().unwrap().unwrap();
+    let graph_info = match lines.next(){
+        Some(v) => v.unwrap(),
+        None => {
+            println!("Empty file");
+            std::process::exit(1);
+        }
+    };
+
 
     let graph_struct: Vec<_> = graph_info.split_whitespace().collect();
-    let n_edges = graph_struct[2].parse::<usize>().unwrap();
+    let n_edges = match graph_struct[2].parse::<usize>() {
+        Ok(v) => v,
+        Err(_) => 0
+    };
     //println!("{:?}", n_edges);
 
     let mut edges: Vec<(V, V)> = Vec::with_capacity(n_edges);
