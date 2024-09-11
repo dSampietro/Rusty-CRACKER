@@ -8,3 +8,4 @@ src/big_graph_test.rs
 Cargo.lock
 src/size.rs
 /src/sketches
+profiling/
