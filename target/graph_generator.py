@@ -21,9 +21,9 @@ def save_mtx(graph: nx.Graph, filename: str) -> None:
 '''
 
 
-num_edges = 1_000_000 
+num_edges = 10_000_000 
 
-for num_nodes in [50_000, 100_000, 250_000, 500_000]:
+for num_nodes in [15_000_000]:
     #num_edges = 1_000_000
     graph = create_graph(num_nodes, num_edges)
 
