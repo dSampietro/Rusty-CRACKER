@@ -2,8 +2,11 @@ use getopts::Options;
 use petgraph::graphmap::{DiGraphMap, UnGraphMap};
 use std::{collections::HashSet, env};
 
-mod graphmap_utils_rayon;
-use graphmap_utils_rayon::{min_selection_base, prune, seed_propagation};
+mod graphmap_utils_rayon_v2;
+use graphmap_utils_rayon_v2::{min_selection_base, prune, seed_propagation};
+
+//mod graphmap_utils_rayon_v2;
+
 
 mod io_util;
 use io_util::read_from_file;
@@ -89,10 +92,12 @@ fn main() {
     loop {
         //min selection
         let h = min_selection_base(&gt);
-        debug_println!("h_{:?} #edges: {:?}", num_it, gt.edge_count());
+        //debug_println!("h_{:?} #edges: {:?}", num_it, gt.edge_count());
+        debug_println!("@ min_selection_{num_it}: {:?}", now.elapsed());
 
         //pruning
         let (temp_g, tree) = prune(h, t);
+        debug_println!("@ pruning_{num_it}: {:?}", now.elapsed());
 
         gt = temp_g;
         //println!("g{num_it}: {:?}", gt);
@@ -103,11 +108,11 @@ fn main() {
         }
 
         num_it += 1;
-        debug_println!("g_{:?} #edges: {:?}", num_it, gt.edge_count());
+        //debug_println!("g_{:?} #edges: {:?}", num_it, gt.edge_count());
     }
 
+    println!("main loop: {:?}", now.elapsed().as_millis());
     let seeds = seed_propagation(t);
-    println!("{:?}", now.elapsed().as_millis());
     debug_println!("duration: {:?}", now.elapsed());
 
     debug_println!("t: {num_it}");
