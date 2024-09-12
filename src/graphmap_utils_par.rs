@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use dashmap::DashMap;
 use petgraph::{
     graphmap::{DiGraphMap, GraphMap, NodeTrait, UnGraphMap},
@@ -16,10 +17,10 @@ where
 {
     let neighbors = DashMap::<V, Vec<V>>::new();
 
-    let nodes: Vec<V> = g.nodes().collect();
+    //let nodes: Vec<V> = g.nodes().collect();
 
     // considerare come vicini nodi tc esiste arco uscente da n
-    nodes.par_iter().for_each(|&node| {
+    g.par_nodes().for_each(|node| {
         let mut node_neighbors: Vec<V> = g.neighbors_directed(node, Outgoing).collect();
         node_neighbors.push(node); //plus itself
         neighbors.insert(node, node_neighbors);
@@ -37,9 +38,9 @@ where
 {
     let neighbors = DashMap::<V, Vec<V>>::new();
 
-    let nodes: Vec<V> = g.nodes().collect();
+    //let nodes: Vec<V> = g.nodes().collect();
 
-    nodes.par_iter().for_each(|&node| {
+    g.par_nodes().for_each(|node| {
         let node_neighbors: Vec<V> = g.neighbors(node).collect();
         neighbors.insert(node, node_neighbors);
     });
@@ -212,7 +213,8 @@ pub fn prune<N: NodeTrait + Send + Sync + Copy + Debug>(
 
     let tree_mutex = Mutex::new(tree);
 
-    entries.par_iter().for_each(|entry| {
+    entries.par_iter().for_each(|entry| 
+        {
         let (u, neighbors) = entry.pair();
 
         if neighbors.len() > 1 {
@@ -340,7 +342,7 @@ pub fn seed_propagation<V: NodeTrait + Debug>(tree: DiGraphMap<V, ()>) -> HashMa
     while !nodes.is_empty() {
         let min_node = nodes[0]; //sorted nodes => min node will always be the 1st
         let incoming_edge = tree.edges_directed(min_node, Incoming); //either 0 or 1 edge
-                                                                     //eprintln!("{:?}", incoming_edge);
+        //eprintln!("{:?}", incoming_edge);
 
         for edge in incoming_edge {
             //eprintln!("Node {:?}, edge {:?}", min_node, edge);
