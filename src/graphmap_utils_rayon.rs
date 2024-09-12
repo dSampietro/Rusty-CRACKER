@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use dashmap::DashMap;
 use petgraph::{
     graphmap::{DiGraphMap, GraphMap, NodeTrait, UnGraphMap},
