@@ -5,3 +5,7 @@
 - confronto con [cracker (spark)](https://github.com/hpclab/cracker)
 
 - grafo 10Mx10M + flamegraph
+
+
+
+- [MS] => dashmap/par_iter non ordinati => mutex più fini su range di nodi
