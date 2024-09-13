@@ -75,7 +75,12 @@ Inoltre per evitare/minimizzare riallocazioni, dove possibile, tutte le struttur
 
 
 
-
-
-
 *You cannot make software run faster. Ever. That’s not a thing. You can only make it do less work.*
+
+
+
+# Benchmark
+Dashmap scala bene sia all'aumentare di #thread che #chiavi.
+In particolare le performance sono ottimali quando #chiavi == #thread.
+
+Il bottleneck è rappresentato dunque dal Mutex su GraphMap che impedisce aggiunte/rimozioni parallele.
