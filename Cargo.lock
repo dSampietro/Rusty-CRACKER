@@ -130,6 +130,7 @@ dependencies = [
  "dashmap",
  "getopts",
  "petgraph",
+ "rand",
  "rayon",
  "rustworkx-core",
 ]

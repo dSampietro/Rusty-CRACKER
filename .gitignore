@@ -9,3 +9,5 @@ Cargo.lock
 src/size.rs
 /src/sketches
 profiling/
+*.mtx
+*.svg

@@ -1,16 +1,26 @@
+use concurrent_graph::ConcurrentDiGraph;
 use getopts::Options;
-use petgraph::graphmap::{DiGraphMap, UnGraphMap};
+mod concurrent_graph;
+
+//use petgraph::graphmap::{DiGraphMap, UnGraphMap};
 use std::{collections::HashSet, env};
 
-mod graphmap_utils_par;
-use graphmap_utils_par::{min_selection_ep, prune, seed_propagation};
+mod concurrentgraph_utils_rayon;
+use concurrentgraph_utils_rayon::{min_selection_ep, prune_os, seed_propagation};
 
-#[macro_use]
+//mod graphmap_utils_rayon_v2;
+
+
 mod io_util;
 use io_util::read_from_file;
 use rayon::ThreadPoolBuilder;
 
 // ~20 ms / 50k edges
+
+macro_rules! debug_println {
+    ($($arg:tt)*) => (if ::std::cfg!(debug_assertions) { ::std::println!($($arg)*); })
+}
+
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
 
@@ -52,6 +62,7 @@ fn main() {
         .build_global()
         .unwrap();
 
+
     //handle -f/--filename
     let filename = matches.opt_str("f");
     if filename.is_none() {
@@ -65,31 +76,40 @@ fn main() {
         return;
     }
 
-    let edges = edges_result.unwrap_or_default();
-    let graph: UnGraphMap<V, ()> = UnGraphMap::from_edges(&edges);
+    let edges: Vec<(V, V)> = edges_result.unwrap_or_default();
+    let graph = ConcurrentDiGraph::<V>::new_directed();
 
-    let mut tree = DiGraphMap::<V, ()>::new();
-    for n in graph.nodes() {
-        tree.add_node(n);
+
+    //TODO: parallelize graph creation
+    for edge in edges {
+        graph.add_edge(edge.0, edge.1);
+        graph.add_edge(edge.1, edge.0);
     }
+
+
+
+    let tree = ConcurrentDiGraph::<V>::new_directed();
 
     let mut gt = graph.clone();
     let mut t = tree.clone();
 
     let mut num_it = 1;
 
+
     let now = std::time::Instant::now();
 
-    debug_println!("g_{:?} #edges: {:?}", num_it, gt.edge_count());
     loop {
         //min selection
-        let h = min_selection_ep(&gt);
-        debug_println!("h_{:?} #edges: {:?}", num_it, h.edge_count());
+        let h: ConcurrentDiGraph<V> = min_selection_ep(&gt);
+        //debug_println!("h_{:?} #edges: {:?}", num_it, gt.edge_count());
+        debug_println!("@ min_selection_{num_it}: {:?}", now.elapsed());
 
         //pruning
-        let (temp_g, tree) = prune(h, t);
+        let (temp_g, tree) = prune_os(h, t);
+        debug_println!("@ pruning_{num_it}: {:?}", now.elapsed());
 
         gt = temp_g;
+        //println!("g{num_it}: {:?}", gt);
         t = tree;
 
         if gt.node_count() == 0 {
@@ -97,21 +117,22 @@ fn main() {
         }
 
         num_it += 1;
-        debug_println!("g_{:?} #edges: {:?}", num_it, 2 * gt.edge_count());
+        //debug_println!("g_{:?} #edges: {:?}", num_it, gt.edge_count());
     }
 
-    let seeds = seed_propagation(t);
+
     println!("{:?}", now.elapsed().as_millis());
+
+    let seeds = seed_propagation(t);
     debug_println!("duration: {:?}", now.elapsed());
 
     debug_println!("t: {num_it}");
-    assert_eq!(seeds.len(), graph.node_count()); //all node have a seed => no nodes are lost
-    //debug_println!("seeds: {seeds:?}");
+    //assert_eq!(seeds.len(), graph.node_count()); //all node have a seed => no nodes are lost
+    //println!("seeds: {seeds:?}");
 
     let num_conn_comp: HashSet<_> = seeds.values().collect();
-    debug_println!(
-        "#CC: {:?}\nnum_conn_comp: {:?}",
-        num_conn_comp.len(),
-        num_conn_comp
-    );
+    debug_println!("#CC: {:?}", num_conn_comp.len());
+    //println!("seeds: {:?}", num_conn_comp);
+
+
 }

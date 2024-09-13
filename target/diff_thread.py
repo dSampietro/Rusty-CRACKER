@@ -40,28 +40,22 @@ def calc_times_with_nThreads(prog: str, file: str, n_threads: List[int], n_runs 
 
 
 
-progs = ["naive", 
-         "par_main", "par_main_ep", "par_main_epos",
-         "rayon_main", "rayon_main_ep", "rayon_main_epos"
-        ]
+progs = [ "base", "ep", "epos"]
 
+name = "syn_50k_1M"
+files = f"syn/fixedNodes/{name}.mtx"
 
-files = "syn/fixedNodes/syn_50k_2M.mtx"
-
-N_THREADS = [0, 1, 2, 4, 8, 16]
+N_THREADS = [1, 2, 4, 8]
 N_RUNS = 5
 
 info = pd.DataFrame()
 info["num_threads"] = N_THREADS
 
-info["par_base"] = calc_times_with_nThreads(progs[1], files, N_THREADS, N_RUNS)
-info["par_ep"] = calc_times_with_nThreads(progs[2], files, N_THREADS, N_RUNS)
-info["par_ep+os"] = calc_times_with_nThreads(progs[3], files, N_THREADS, N_RUNS)
-info["rayon_base"] = calc_times_with_nThreads(progs[4], files, N_THREADS, N_RUNS)
-info["rayon_ep"] = calc_times_with_nThreads(progs[5], files, N_THREADS, N_RUNS)
-info["rayon_ep+os"] = calc_times_with_nThreads(progs[6], files, N_THREADS, N_RUNS)
+info["base"] = calc_times_with_nThreads(progs[0], files, N_THREADS, N_RUNS)
+info["ep"] = calc_times_with_nThreads(progs[1], files, N_THREADS, N_RUNS)
+info["epos"] = calc_times_with_nThreads(progs[2], files, N_THREADS, N_RUNS)
 
 
 
 print(info)
-info.to_csv(path_or_buf="syn_50k_2M_RustvsSpark.csv", index=False)
+info.to_csv(path_or_buf=f"{name}_diffThread.csv", index=False)
