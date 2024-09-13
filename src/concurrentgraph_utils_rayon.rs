@@ -120,11 +120,11 @@ where
     h
 }
 
-fn get_outgoing_neighborhood<N: NodeTrait + Send + Sync>(
+/*fn get_outgoing_neighborhood<N: NodeTrait + Send + Sync>(
     h: &ConcurrentDiGraph<N>,
 ) -> DashMap<N, HashSet<N>> {
     h.get_neighborhoods()
-}
+}*/
 
 pub fn prune<N: NodeTrait + Send + Sync + Debug>(
     h: ConcurrentDiGraph<N>,
@@ -132,7 +132,7 @@ pub fn prune<N: NodeTrait + Send + Sync + Debug>(
 ) -> (ConcurrentUnGraph<N>, ConcurrentDiGraph<N>) {
     //eprintln!("Pruning");
     //get outgoing neighborhoods
-    let outgoing_neighborhoods: DashMap<N, HashSet<N>> = get_outgoing_neighborhood(&h);
+    let outgoing_neighborhoods: DashMap<N, HashSet<N>> = h.get_neighborhoods();
 
     let min_outgoing_neighborhoods = get_vmins(&h);
 
@@ -202,7 +202,7 @@ pub fn prune_os<N: NodeTrait + Debug>(
     tree: ConcurrentDiGraph<N>,
 ) -> (ConcurrentDiGraph<N>, ConcurrentDiGraph<N>) {
     //get outgoing neighborhoods
-    let outgoing_neighborhoods: DashMap<N, HashSet<N>> = get_outgoing_neighborhood(&h);
+    let outgoing_neighborhoods: DashMap<N, HashSet<N>> = h.get_neighborhoods();
 
     let min_outgoing_neighborhoods = get_vmins(&h);
 
