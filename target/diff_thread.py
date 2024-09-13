@@ -42,8 +42,8 @@ def calc_times_with_nThreads(prog: str, file: str, n_threads: List[int], n_runs 
 
 progs = [ "base", "ep", "epos"]
 
-name = "syn_50k_1M"
-files = f"syn/fixedNodes/{name}.mtx"
+name = "facebook_artist"
+files = f"{name}.mtx"
 
 N_THREADS = [1, 2, 4, 8]
 N_RUNS = 5
