@@ -7,14 +7,26 @@ edition = "2021"
 dashmap = {version = "6.0.1", features = ["rayon"]}
 getopts = "0.2.21"
 petgraph = { version = "0.6.5", features = ["rayon"] }
+rand = "0.8.5"  #dev-dependencies
 rayon = "1.10.0"
 rustworkx-core = "0.15.1"
 
+
+# ----------------- TEST -----------------
 [[bin]]
 name = "countingThreads"
 path = "src/sketches/countingThreads.rs"
 
+[[bin]]
+name = "mvp"
+path = "src/multipleMutex/mvp.rs"
 
+[[bin]]
+name = "cg"
+path = "src/multipleMutex/cg.rs"
+
+
+# ----------------- PROD -----------------
 [[bin]]
 name = "naive"
 path = "src/naive.rs"
