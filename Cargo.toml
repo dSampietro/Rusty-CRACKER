@@ -21,9 +21,9 @@ rustworkx-core = "0.15.1"
 #name = "mvp"
 #path = "src/multipleMutex/mvp.rs"
 
-#[[bin]]
-#name = "cg"
-#path = "src/multipleMutex/cg.rs"
+[[bin]]
+name = "cg"
+path = "src/cg.rs"
 
 [[bin]]
 name = "base"
