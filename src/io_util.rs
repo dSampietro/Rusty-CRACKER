@@ -45,10 +45,7 @@ where
 
 
     let graph_struct: Vec<_> = graph_info.split_whitespace().collect();
-    let n_edges = match graph_struct[2].parse::<usize>() {
-        Ok(v) => v,
-        Err(_) => 0
-    };
+    let n_edges = graph_struct[2].parse::<usize>().unwrap_or(0);
     //println!("{:?}", n_edges);
 
     let mut edges: Vec<(V, V)> = Vec::with_capacity(n_edges);
