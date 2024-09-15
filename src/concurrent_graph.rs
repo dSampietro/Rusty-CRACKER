@@ -23,10 +23,14 @@ where N: Eq + NodeTrait {
         }
     }
 
+    pub fn from_edges(){
+        
+    }
+
     pub fn nodes(&self) -> Vec<N> {
         self.adj_list
             .par_iter()
-            .map(|entry| entry.key().clone())
+            .map(|entry| *entry.key())
             .collect()        
     }
 
@@ -41,7 +45,7 @@ where N: Eq + NodeTrait {
         res
             .par_iter_mut()
             .for_each( |mut entry| {
-                let key = entry.key().clone();
+                let key = *entry.key();
                 entry.value_mut().insert(key);
             });
 
@@ -70,7 +74,7 @@ where N: Eq + NodeTrait {
     }
 
     pub fn outgoing_edges(&self, node: N) -> HashSet<N> {
-        assert_eq!(self.directed, true);
+        assert!(self.directed);
 
         match self.adj_list.get(&node) {
             Some(v) => v.clone(),
@@ -78,8 +82,9 @@ where N: Eq + NodeTrait {
         }
     }
 
-    pub fn incoming_edges(&self, node: N) -> DashSet<N>{
-        assert_eq!(self.directed, true);
+    // ~ O(|V|)
+    pub fn incoming_edges(&self, node: N) -> DashSet<N> {
+        assert!(self.directed); //unnecessary
 
         // {n € N | node € adj_list[n]}
 
@@ -97,12 +102,35 @@ where N: Eq + NodeTrait {
         res
     }
 
+    pub fn incoming_edges_V2(&self, node: N) -> DashSet<N>{
+        //try to iterate over nodes and add to res if contains_edge(it, node)
+        let res: DashSet<N> = DashSet::new();
+
+        /*
+        if edges are like {node: N, d: direction}
+            self.adj_list[node].filter(d == Incoming)
+        */
+
+        /*
+        another approach: 
+            separating Incoming and Outgoing edges into different sets
+        */
+
+
+        res
+    }
+
     fn is_directed(&self) -> bool {
         self.directed
     }
 
-    // Add an edge between two nodes; parallel edges not allowed, but self-loops are
+    /// Add an edge between two nodes; parallel edges not allowed, but self-loops are
     pub fn add_edge(&self, a: N, b: N) {
+        if !self.adj_list.contains_key(&b){
+            self.add_node(b);
+        }
+
+
         // Add (a -> b)
         match self.adj_list.get_mut(&a) {
             Some(mut vec) => {vec.insert(b);},
@@ -140,7 +168,7 @@ where N: Eq + NodeTrait {
         self.adj_list.contains_key(&node)
     }
 
-    /// Check if an edge exists between two nodes
+    /// Check if an edge exists between two nodes ~ O(1)
     pub fn contains_edge(&self, node_a: N, node_b: N) -> bool {
         match self.adj_list.get(&node_a) {
             Some(vec) => vec.contains(&node_b),
