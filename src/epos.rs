@@ -1,18 +1,13 @@
-use concurrent_graph::ConcurrentDiGraph;
+use concurrent_graph::{ConcurrentDiGraph, GraphTrait};
+use dashmap::DashSet;
 use getopts::Options;
-mod concurrent_graph;
+use io_util::prelude::read_from_file;
 
-//use petgraph::graphmap::{DiGraphMap, UnGraphMap};
-use std::{collections::HashSet, env};
+use std::env;
 
 mod concurrentgraph_utils_rayon;
-use concurrentgraph_utils_rayon::{min_selection_ep, par_seed_propagation, prune_os, seed_propagation};
+use concurrentgraph_utils_rayon::{min_selection_ep, par_seed_propagation, prune_os};
 
-//mod graphmap_utils_rayon_v2;
-
-
-mod io_util;
-use io_util::read_from_file;
 use rayon::ThreadPoolBuilder;
 
 // ~20 ms / 50k edges
@@ -77,7 +72,7 @@ fn main() {
     }
 
     let edges: Vec<(V, V)> = edges_result.unwrap_or_default();
-    let graph = ConcurrentDiGraph::<V>::new_directed();
+    let graph = ConcurrentDiGraph::<V>::new();
 
 
     //TODO: parallelize graph creation
@@ -88,7 +83,7 @@ fn main() {
 
 
 
-    let tree = ConcurrentDiGraph::<V>::new_directed();
+    let tree = ConcurrentDiGraph::<V>::new();
 
     let mut gt = graph.clone();
     let mut t = tree.clone();
@@ -123,7 +118,7 @@ fn main() {
 
     println!("{:?}", now.elapsed().as_millis());
 
-    let seeds = seed_propagation(&t);
+    let seeds = par_seed_propagation(&t);
     println!("duration: {:?}", now.elapsed());
 
     debug_println!("t: {num_it}");
@@ -131,7 +126,8 @@ fn main() {
     //println!("seeds: {seeds:?}");
 
     //let num_conn_comp: HashSet<_> = seeds.values().collect();
-    //debug_println!("#CC: {:?}", num_conn_comp.len());
+    let num_conn_comp: DashSet<u32> = seeds.iter().map(|entry| *entry.value()).collect();
+    println!("#CC: {:?}", num_conn_comp.len());
 
     debug_println!("end: {:?}", now.elapsed());
     //println!("seeds: {:?}", num_conn_comp);
