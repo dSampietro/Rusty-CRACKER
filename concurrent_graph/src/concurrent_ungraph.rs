@@ -8,18 +8,18 @@ pub trait NodeTrait: Copy + Ord + Hash + Send + Sync {}
 impl<N> NodeTrait for N where N: Copy + Ord + Hash + Send + Sync {}
 
 #[derive(Clone)]
-pub struct ConcurrentGraph<N: NodeTrait> {
+pub struct ConcurrentUnGraph<N: NodeTrait> {
     adj_list: DashMap<N, HashSet<N>>,  // Adjacency list without weights
     directed: bool
 }
 
-impl<N> ConcurrentGraph<N> 
+impl<N> ConcurrentUnGraph<N> 
 where N: Eq + NodeTrait {
     // Create a new graph
-    pub fn new(is_directed: bool) -> Self {
-        ConcurrentGraph {
+    pub fn new() -> Self {
+        ConcurrentUnGraph {
             adj_list: DashMap::new(),
-            directed: is_directed
+            directed: false
         }
     }
 
@@ -102,24 +102,6 @@ where N: Eq + NodeTrait {
         res
     }
 
-    pub fn incoming_edges_V2(&self, node: N) -> DashSet<N>{
-        //try to iterate over nodes and add to res if contains_edge(it, node)
-        let res: DashSet<N> = DashSet::new();
-
-        /*
-        if edges are like {node: N, d: direction}
-            self.adj_list[node].filter(d == Incoming)
-        */
-
-        /*
-        another approach: 
-            separating Incoming and Outgoing edges into different sets
-        */
-
-
-        res
-    }
-
     fn is_directed(&self) -> bool {
         self.directed
     }
@@ -174,21 +156,5 @@ where N: Eq + NodeTrait {
             Some(vec) => vec.contains(&node_b),
             None => false
         }
-    }
-}
-
-
-
-
-pub type ConcurrentUnGraph<N> = ConcurrentGraph<N>;
-impl<N: NodeTrait> ConcurrentUnGraph<N> {
-    pub fn new_undirected() -> Self {
-        ConcurrentGraph::new(false)
-    }
-}
-pub type ConcurrentDiGraph<N> = ConcurrentGraph<N>;
-impl<N: NodeTrait> ConcurrentDiGraph<N> {
-    pub fn new_directed() -> Self {
-        ConcurrentGraph::new(true)
     }
 }
