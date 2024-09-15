@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+concurrent_graph = {path = "concurrent_graph/"}
 dashmap = {version = "6.0.1", features = ["rayon"]}
 getopts = "0.2.21"
 petgraph = { version = "0.6.5", features = ["rayon"] }
