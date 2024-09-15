@@ -123,15 +123,18 @@ fn main() {
 
     println!("{:?}", now.elapsed().as_millis());
 
-    let seeds = seed_propagation(t);
+    let seeds = seed_propagation(&t);
     debug_println!("duration: {:?}", now.elapsed());
 
     debug_println!("t: {num_it}");
     //assert_eq!(seeds.len(), graph.node_count()); //all node have a seed => no nodes are lost
     //println!("seeds: {seeds:?}");
 
-    let num_conn_comp: HashSet<_> = seeds.values().collect();
-    debug_println!("#CC: {:?}", num_conn_comp.len());
+    //let num_conn_comp: HashSet<_> = seeds.values().collect();
+    //debug_println!("#CC: {:?}", num_conn_comp.len());
+    let num_conn_comp = seeds.values().collect::<HashSet<_>>().len();
+    debug_println!("#CC: {:?}", num_conn_comp);
+
     //println!("seeds: {:?}", num_conn_comp);
 
 }
