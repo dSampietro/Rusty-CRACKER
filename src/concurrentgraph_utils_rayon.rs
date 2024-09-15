@@ -37,7 +37,7 @@ where
     neighborhoods.par_iter().for_each(|entry| {
         let (u, neighbors) = entry.pair();
         //println!("[MS- Iter neighborhoods]: {u:?}");  //debug
-        let v_min_option = v_mins.get(&u);
+        let v_min_option = v_mins.get(u);
 
         if v_min_option.is_none() {
             return;
@@ -259,20 +259,32 @@ pub fn prune_os<N: NodeTrait + Debug>(
 
 
 
-pub fn seed_propagation<V: NodeTrait + Debug>(tree: ConcurrentDiGraph<V>) -> HashMap<V, V> {
+pub fn seed_propagation<V: NodeTrait + Debug>(tree: &ConcurrentDiGraph<V>) -> HashMap<V, V> {
+    let start = std::time::Instant::now();
+
     let mut seeds_map: HashMap<V, V> = HashMap::with_capacity(tree.node_count());
 
     let mut nodes: Vec<V> = tree.nodes();
-    nodes.sort_unstable(); //no duplicates => can use unstable sorting => more efficient
+    nodes.sort_unstable(); //no duplicates => can use unstable sorting (more efficient)
+    eprintln!("after sorting: {:?}", start.elapsed());
+
+    assert_eq!(nodes.len(), tree.node_count());
 
     //while + removal
     while !nodes.is_empty() {
+        
         let min_node = nodes[0]; //sorted nodes => min node will always be the 1st
+        //println!("seeding {:?}", min_node);
+        let iteration_start = std::time::Instant::now();
         let incoming_edge = tree.incoming_edges(min_node); //either 0 or 1 edge
+        eprintln!("incoming duration: {:?}", iteration_start.elapsed());
         //eprintln!("{:?}", incoming_edge);
 
 
         //TODO: HashMap -> DashMap and par_iter
+        //At this point every node should have only 0 or 1 incoming edge?
+        //assert!((incoming_edge.len() == 0) ^ (incoming_edge.len() == 1));
+
         for from in incoming_edge {
             //eprintln!("Node {:?}, edge {:?}", min_node, edge);
 
@@ -293,4 +305,43 @@ pub fn seed_propagation<V: NodeTrait + Debug>(tree: ConcurrentDiGraph<V>) -> Has
     }
 
     seeds_map
+}
+
+
+pub fn par_seed_propagation<V: NodeTrait + Debug>(tree: &ConcurrentDiGraph<V>) -> DashMap<V, V> {
+    let seeds_map = DashMap::with_capacity(tree.node_count());
+
+    tree.nodes().par_iter().for_each(|&n| {
+        //println!("seeding {:?}", &n);
+        //let incoming_edges = tree.incoming_edges(n);
+        //assert!(incoming_edges.is_empty() ^ (incoming_edges.len() == 1));
+
+        /*if incoming_edges.is_empty() {  //node is a root
+            seeds_map.insert(n, n);
+        }
+        else {
+            //get root
+            seeds_map.insert(n, get_root(&tree, n));
+        }*/
+        seeds_map.insert(n, get_root(&tree, n));
+    });
+
+    seeds_map
+}
+
+fn get_root<V: NodeTrait>(tree: &ConcurrentDiGraph<V>, node: V) -> V{
+    /*
+    - get incoming
+    - if incoming.empty -> node
+    - else incoming.get -> recursive
+    */
+
+    let incoming = tree.incoming_edges(node);
+    
+    if incoming.is_empty() {
+        node
+    }
+    else{
+        get_root(tree, *incoming.iter().next().unwrap())
+    }
 }
