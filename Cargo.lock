@@ -138,6 +138,7 @@ dependencies = [
  "concurrent_graph",
  "dashmap",
  "getopts",
+ "io_util",
  "petgraph",
  "rand",
  "rayon",
@@ -165,6 +166,10 @@ dependencies = [
  "hashbrown",
  "rayon",
 ]
+
+[[package]]
+name = "io_util"
+version = "0.1.0"
 
 [[package]]
 name = "itertools"
