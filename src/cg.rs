@@ -1,5 +1,6 @@
+#![allow(unused_imports)]
 mod concurrent_graph;
-use concurrent_graph::{ConcurrentDiGraph, ConcurrentGraph, ConcurrentUnGraph};
+use concurrent_graph::{ConcurrentDiGraph, ConcurrentUnGraph};
 use concurrentgraph_utils_rayon::par_seed_propagation;
 use dashmap::DashSet;
 use rand::Rng;
@@ -39,7 +40,7 @@ fn main() {
         println!("nodes: {:?}", tree.nodes());
         println!("#edges: {:?}", tree.edge_count());
 
-        let seeds_map = par_seed_propagation(tree);
+        let seeds_map = par_seed_propagation(&tree);
 
         println!("seeds: {:?}", seeds_map);
     }
