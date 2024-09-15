@@ -1,11 +1,10 @@
 #![allow(dead_code)]
 use dashmap::DashMap;
 use dashmap::DashSet;
-use std::{collections::HashSet, hash::Hash};
+use std::collections::HashSet;
 use rayon::prelude::*;
 
-pub trait NodeTrait: Copy + Ord + Hash + Send + Sync {}
-impl<N> NodeTrait for N where N: Copy + Ord + Hash + Send + Sync {}
+use crate::NodeTrait;
 
 #[derive(Clone)]
 pub struct ConcurrentUnGraph<N: NodeTrait> {

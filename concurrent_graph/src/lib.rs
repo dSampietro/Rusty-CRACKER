@@ -5,4 +5,6 @@ pub use crate::concurrent_digraph::ConcurrentDiGraph;
 
 mod concurrent_ungraph;
 pub use crate::concurrent_ungraph::ConcurrentUnGraph;
-pub use crate::concurrent_ungraph::NodeTrait as NodeTrait;
+
+mod traits;
+pub use crate::traits::util_traits::NodeTrait;
