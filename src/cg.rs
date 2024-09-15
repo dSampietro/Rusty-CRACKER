@@ -1,6 +1,5 @@
 #![allow(unused_imports)]
-mod concurrent_graph;
-use concurrent_graph::{ConcurrentDiGraph, ConcurrentUnGraph};
+use concurrent_graph::{ConcurrentDiGraph, GraphTrait};
 use concurrentgraph_utils_rayon::par_seed_propagation;
 use dashmap::DashSet;
 use rand::Rng;
@@ -16,7 +15,7 @@ fn main() {
 
 
     println!("w/ {num_threads} threads");
-    let graph: ConcurrentUnGraph<i32> = ConcurrentDiGraph::new_directed();
+    let graph: ConcurrentDiGraph<i32> = ConcurrentDiGraph::new();
 
     // Add edges
     graph.add_edge(1, 2);
@@ -25,7 +24,7 @@ fn main() {
     graph.add_edge(4, 2);
 
     {
-        let tree = ConcurrentDiGraph::<u16>::new_directed();
+        let tree = ConcurrentDiGraph::<u16>::new();
         tree.add_edge(0, 1);
         tree.add_edge(0, 2);
         tree.add_edge(0, 3);

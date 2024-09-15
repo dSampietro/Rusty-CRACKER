@@ -46,6 +46,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "concurrent_graph"
+version = "0.1.0"
+dependencies = [
+ "dashmap",
+ "rayon",
+]
+
+[[package]]
 name = "crossbeam-deque"
 version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -127,8 +135,10 @@ dependencies = [
 name = "graph_example"
 version = "0.1.0"
 dependencies = [
+ "concurrent_graph",
  "dashmap",
  "getopts",
+ "io_util",
  "petgraph",
  "rand",
  "rayon",
@@ -156,6 +166,10 @@ dependencies = [
  "hashbrown",
  "rayon",
 ]
+
+[[package]]
+name = "io_util"
+version = "0.1.0"
 
 [[package]]
 name = "itertools"

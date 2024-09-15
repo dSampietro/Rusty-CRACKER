@@ -11,3 +11,6 @@ src/size.rs
 profiling/
 *.mtx
 *.svg
+
+concurrent_graph/target
+io_util/target
