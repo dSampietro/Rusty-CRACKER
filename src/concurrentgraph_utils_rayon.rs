@@ -3,15 +3,17 @@ use dashmap::{DashMap, DashSet};
 use rayon::prelude::*;
 use std::{collections::{HashMap, HashSet}, fmt::Debug};
 
-use crate::concurrent_graph::{ConcurrentDiGraph, ConcurrentGraph, ConcurrentUnGraph, NodeTrait};
-
+//use crate::concurrent_graph::{ConcurrentDiGraph, ConcurrentGraph, ConcurrentUnGraph, NodeTrait};
+use concurrent_graph::{ConcurrentDiGraph, ConcurrentUnGraph, NodeTrait, GraphTrait};
 
 /// Get the min neighbor of every node
-fn get_vmins<V>(graph: &ConcurrentGraph<V>) -> DashMap<V, V> 
-where V: NodeTrait + Send + Sync{
+fn get_vmins<G, V>(graph: &G) -> DashMap<V, V> 
+where G: GraphTrait<V>, V: NodeTrait + Send + Sync {
     let v_mins: DashMap<V, V> = DashMap::with_capacity(graph.node_count());
 
-    graph.get_closed_neighborhoods().par_iter().for_each( |entry| {
+    //since get_vmins should be the same with Un/Direceted graphs, get_closed_neighborhoods should be the same in both cases
+    // get_closed_neighborhoods => get_closed_neighborhoods_undirected
+    graph.get_closed_neighborhoods_undirected().par_iter().for_each( |entry| {
         let key = entry.key();
         let v_min = entry.value().iter().min().unwrap();
 
@@ -31,7 +33,7 @@ where
     let v_mins: DashMap<N, N> = get_vmins(g);
 
     // create directed graph h
-    let h: ConcurrentDiGraph<N> = ConcurrentDiGraph::new_directed(); //::with_capacity(g.node_count(), g.edge_count());
+    let h: ConcurrentDiGraph<N> = ConcurrentDiGraph::new(); //::with_capacity(g.node_count(), g.edge_count());
 
     //add edges
     neighborhoods.par_iter().for_each(|entry| {
@@ -59,15 +61,16 @@ where
 
 
 // with Edge Pruning
-pub fn min_selection_ep<N>(g: &ConcurrentGraph<N>) -> ConcurrentDiGraph<N>
+pub fn min_selection_ep<G, N>(g: &G) -> ConcurrentDiGraph<N>
 where
+    G: GraphTrait<N>,
     N: NodeTrait + Eq + Send + Sync + Debug,
 {
-    let neighborhoods: DashMap<N, HashSet<N>> = g.get_neighborhoods();
+    let neighborhoods: DashMap<N, HashSet<N>> = g.get_all_neighborhoods();
     let v_mins: DashMap<N, N> = get_vmins(g);
 
     // create directed graph h
-    let h: ConcurrentDiGraph<N> = ConcurrentDiGraph::new_directed(); //::with_capacity(g.node_count(), g.edge_count());
+    let h: ConcurrentDiGraph<N> = ConcurrentDiGraph::new(); //::with_capacity(g.node_count(), g.edge_count());
 
     //add edges
     //let mut neighborhoods_entries: Vec<_> = neighborhoods.iter().collect();
@@ -120,11 +123,8 @@ where
     h
 }
 
-/*fn get_outgoing_neighborhood<N: NodeTrait + Send + Sync>(
-    h: &ConcurrentDiGraph<N>,
-) -> DashMap<N, HashSet<N>> {
-    h.get_neighborhoods()
-}*/
+
+
 
 pub fn prune<N: NodeTrait + Send + Sync + Debug>(
     h: ConcurrentDiGraph<N>,
@@ -132,11 +132,11 @@ pub fn prune<N: NodeTrait + Send + Sync + Debug>(
 ) -> (ConcurrentUnGraph<N>, ConcurrentDiGraph<N>) {
     //eprintln!("Pruning");
     //get outgoing neighborhoods
-    let outgoing_neighborhoods: DashMap<N, HashSet<N>> = h.get_neighborhoods();
+    let outgoing_neighborhoods: DashMap<N, HashSet<N>> = h.get_neighborhoods(true);
 
     let min_outgoing_neighborhoods = get_vmins(&h);
 
-    let pruned_graph = ConcurrentUnGraph::new_undirected(); //::with_capacity(h.node_count(), h.edge_count());
+    let pruned_graph = ConcurrentUnGraph::new(); //::with_capacity(h.node_count(), h.edge_count());
 
     /*
     no need to add node to pruned_graph
@@ -202,11 +202,11 @@ pub fn prune_os<N: NodeTrait + Debug>(
     tree: ConcurrentDiGraph<N>,
 ) -> (ConcurrentDiGraph<N>, ConcurrentDiGraph<N>) {
     //get outgoing neighborhoods
-    let outgoing_neighborhoods: DashMap<N, HashSet<N>> = h.get_neighborhoods();
+    let outgoing_neighborhoods: DashMap<N, HashSet<N>> = h.get_neighborhoods(true);
 
     let min_outgoing_neighborhoods = get_vmins(&h);
 
-    let pruned_graph = ConcurrentDiGraph::<N>::new_directed(); //::with_capacity(h.node_count(), h.edge_count());
+    let pruned_graph = ConcurrentDiGraph::<N>::new(); //::with_capacity(h.node_count(), h.edge_count());
 
     //add to G(t+1) + deactivation
     let deactivated_nodes: DashSet<N> = DashSet::new();
@@ -275,9 +275,9 @@ pub fn seed_propagation<V: NodeTrait + Debug>(tree: &ConcurrentDiGraph<V>) -> Ha
         
         let min_node = nodes[0]; //sorted nodes => min node will always be the 1st
         //println!("seeding {:?}", min_node);
-        let iteration_start = std::time::Instant::now();
+        //let iteration_start = std::time::Instant::now();
         let incoming_edge = tree.incoming_edges(min_node); //either 0 or 1 edge
-        eprintln!("incoming duration: {:?}", iteration_start.elapsed());
+        //eprintln!("incoming duration: {:?}", iteration_start.elapsed());
         //eprintln!("{:?}", incoming_edge);
 
 
