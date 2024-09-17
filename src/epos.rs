@@ -119,7 +119,7 @@ fn main() {
     println!("{:?}", now.elapsed().as_millis());
 
     let seeds = par_seed_propagation(&t);
-    println!("duration: {:?}", now.elapsed());
+    debug_println!("duration: {:?}", now.elapsed());
 
     debug_println!("t: {num_it}");
     //assert_eq!(seeds.len(), graph.node_count()); //all node have a seed => no nodes are lost
@@ -127,7 +127,7 @@ fn main() {
 
     //let num_conn_comp: HashSet<_> = seeds.values().collect();
     let num_conn_comp: DashSet<u32> = seeds.iter().map(|entry| *entry.value()).collect();
-    println!("#CC: {:?}", num_conn_comp.len());
+    debug_println!("#CC: {:?}", num_conn_comp.len());
 
     debug_println!("end: {:?}", now.elapsed());
     //println!("seeds: {:?}", num_conn_comp);

@@ -116,7 +116,14 @@ fn main() {
         }
 
         num_it += 1;
-        //debug_println!("g_{:?} #edges: {:?}", num_it, gt.edge_count());
+
+        /*
+        if gt.edge_count() < 10 {
+            debug_println!("{:?}", gt);
+        }
+        debug_println!("g_{:?} #nodes: {:?}", num_it, gt.node_count());
+        debug_println!("g_{:?} #edges: {:?}", num_it, gt.edge_count());
+        */
     }
 
     //println!("main loop: {:?}", now.elapsed());
@@ -130,7 +137,7 @@ fn main() {
     //println!("seeds: {seeds:?}");
 
     let num_conn_comp: DashSet<u32> = seeds.iter().map(|entry| *entry.value()).collect();
-    debug_println!("#CC: {:?}", num_conn_comp);
+    debug_println!("#CC: {:?}", num_conn_comp.len());
     debug_println!("end: {:?}", now.elapsed());
     //println!("seeds: {:?}", num_conn_comp);
 
