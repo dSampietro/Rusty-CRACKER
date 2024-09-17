@@ -33,7 +33,7 @@ where
     let v_mins: DashMap<N, N> = get_vmins(g);
 
     // create directed graph h
-    let h: ConcurrentDiGraph<N> = ConcurrentDiGraph::new(); //::with_capacity(g.node_count(), g.edge_count());
+    let h: ConcurrentDiGraph<N> = ConcurrentDiGraph::with_capacity(g.node_count(), g.edge_count());
 
     //add edges
     neighborhoods.par_iter().for_each(|entry| {
@@ -70,7 +70,7 @@ where
     let v_mins: DashMap<N, N> = get_vmins(g);
 
     // create directed graph h
-    let h: ConcurrentDiGraph<N> = ConcurrentDiGraph::new(); //::with_capacity(g.node_count(), g.edge_count());
+    let h: ConcurrentDiGraph<N> = ConcurrentDiGraph::with_capacity(g.node_count(), g.edge_count());
 
     //add edges
     //let mut neighborhoods_entries: Vec<_> = neighborhoods.iter().collect();
@@ -125,7 +125,6 @@ where
 
 
 
-
 pub fn prune<N: NodeTrait + Send + Sync + Debug>(
     h: ConcurrentDiGraph<N>,
     tree: ConcurrentDiGraph<N>,
@@ -136,16 +135,10 @@ pub fn prune<N: NodeTrait + Send + Sync + Debug>(
 
     let min_outgoing_neighborhoods = get_vmins(&h);
 
-    let pruned_graph = ConcurrentUnGraph::new(); //::with_capacity(h.node_count(), h.edge_count());
-
-    /*
-    no need to add node to pruned_graph
-    when par_iterating, every node will be visited => every node will be added
-    */
+    let pruned_graph = ConcurrentUnGraph::with_capacity(h.node_count(), h.edge_count());
 
     //add to G(t+1) + deactivation
     let deactivated_nodes: DashSet<N> = DashSet::new();
-    //let deactivated_nodes_mutex: Mutex<Vec<N>> = Mutex::new(deactivated_nodes);
 
     outgoing_neighborhoods.par_iter().for_each(|entry| {
         let (u, neighbors) = entry.pair();
@@ -206,7 +199,7 @@ pub fn prune_os<N: NodeTrait + Debug>(
 
     let min_outgoing_neighborhoods = get_vmins(&h);
 
-    let pruned_graph = ConcurrentDiGraph::<N>::new(); //::with_capacity(h.node_count(), h.edge_count());
+    let pruned_graph = ConcurrentDiGraph::<N>::with_capacity(h.node_count(), h.edge_count());
 
     //add to G(t+1) + deactivation
     let deactivated_nodes: DashSet<N> = DashSet::new();
