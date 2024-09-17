@@ -8,10 +8,10 @@ concurrent_graph = {path = "concurrent_graph/"}
 dashmap = {version = "6.0.1", features = ["rayon"]}
 getopts = "0.2.21"
 io_util = {path = "io_util/"}
-petgraph = { version = "0.6.5", features = ["rayon"] }
-rand = "0.8.5"  #dev-dependencies
+#petgraph = { version = "0.6.5", features = ["rayon"] }
+#rand = "0.8.5"  #dev-dependencies
 rayon = "1.10.0"
-rustworkx-core = "0.15.1"
+#rustworkx-core = "0.15.1"  #for naive algorithm
 
 
 # ----------------- TEST -----------------
@@ -60,14 +60,14 @@ path = "src/epos.rs"
 
 
 #rayon
-[[bin]]
-name = "rayon_main"
-path = "src/sketches/oldVersion/rayon_main.rs"
+#[[bin]]
+#name = "rayon_main"
+#path = "src/sketches/oldVersion/rayon_main.rs"
 
-[[bin]]
-name = "rayon_main_ep"
-path = "src/sketches/oldVersion/rayon_main_ep.rs"
+#[[bin]]
+#name = "rayon_main_ep"
+#path = "src/sketches/oldVersion/rayon_main_ep.rs"
 
-[[bin]]
-name = "rayon_main_epos"
-path = "src/sketches/oldVersion/rayon_main_epos.rs"
+#[[bin]]
+#name = "rayon_main_epos"
+#path = "src/sketches/oldVersion/rayon_main_epos.rs"
