@@ -5,11 +5,11 @@ use rayon::prelude::*;
 use crate::{GraphTrait, NodeTrait};
 
 /// Adjacency list without weights
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ConcurrentDiGraph<N: NodeTrait> {
     outgoing_edges: DashMap<N, HashSet<N>>,
     incoming_edges: DashMap<N, HashSet<N>>,
-    directed: bool
+    avg_edges: usize
 }
 
 impl<N> GraphTrait<N> for ConcurrentDiGraph<N> 
@@ -55,12 +55,12 @@ where N: Eq + NodeTrait {
     fn add_node(&self, node: N){
         match self.outgoing_edges.get(&node) {
             Some(_) => (),
-            None => {self.outgoing_edges.insert(node, HashSet::new());}
+            None => {self.outgoing_edges.insert(node, HashSet::with_capacity(self.avg_edges));}
         }
 
         match self.incoming_edges.get(&node) {
             Some(_) => (),
-            None => {self.incoming_edges.insert(node, HashSet::new());}
+            None => {self.incoming_edges.insert(node, HashSet::with_capacity(self.avg_edges));}
         }
     }
 
@@ -90,20 +90,22 @@ where N: Eq + NodeTrait {
     /// Add an edge between two nodes; parallel edges not allowed, but self-loops are
     fn add_edge(&self, a: N, b: N) {
         //maybe use a nodes hashset to keep track of nodes
-        if !self.outgoing_edges.contains_key(&b){
+        
+        //is this even useful?
+        /*if !self.outgoing_edges.contains_key(&b){
             self.add_node(b);
         }
 
         if !self.incoming_edges.contains_key(&a){
             self.add_node(a);
-        }
+        }*/
 
 
         // Add (a -> b) to outgoing_edges
         match self.outgoing_edges.get_mut(&a) {
             Some(mut vec) => {vec.insert(b);},
             None => {
-                let mut new_neigh = HashSet::new();
+                let mut new_neigh = HashSet::with_capacity(self.avg_edges);
                 new_neigh.insert(b);
                 self.outgoing_edges.insert(a, new_neigh);
             }
@@ -113,7 +115,7 @@ where N: Eq + NodeTrait {
         match self.incoming_edges.get_mut(&b) {
             Some(mut vec) => {vec.insert(a);},
             None => {
-                let mut new_neigh = HashSet::new();
+                let mut new_neigh = HashSet::with_capacity(self.avg_edges);
                 new_neigh.insert(a);
                 self.incoming_edges.insert(b, new_neigh);
             }
@@ -143,14 +145,24 @@ where N: Eq + NodeTrait {
         ConcurrentDiGraph {
             outgoing_edges: DashMap::new(),
             incoming_edges: DashMap::new(),
-            directed: true
+            avg_edges: 1
+        }
+    }
+
+    pub fn with_capacity(num_nodes: usize, num_edges: usize) -> Self {
+        let avg_edges = num_edges / num_nodes; 
+
+        ConcurrentDiGraph {
+            outgoing_edges: DashMap::with_capacity(num_nodes),
+            incoming_edges: DashMap::with_capacity(num_nodes),
+            avg_edges: avg_edges
         }
     }
 
     fn from_edges(){}
 
     fn is_directed(&self) -> bool {
-        self.directed
+        true
     }
 
     pub fn get_neighborhoods(&self, outgoing: bool) -> DashMap<N, HashSet<N>> {

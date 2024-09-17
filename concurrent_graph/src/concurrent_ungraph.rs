@@ -7,10 +7,10 @@ use rayon::prelude::*;
 use crate::GraphTrait;
 use crate::NodeTrait;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ConcurrentUnGraph<N: NodeTrait> {
     adj_list: DashMap<N, HashSet<N>>,  // Adjacency list without weights
-    directed: bool
+    avg_edges: usize
 }
 
 impl<N> GraphTrait<N> for ConcurrentUnGraph<N> 
@@ -23,7 +23,7 @@ where N: Eq + NodeTrait {
     }
 
     fn get_closed_neighborhoods_undirected(&self) -> DashMap<N, HashSet<N>> {
-        self.adj_list.clone()
+        self.get_closed_neighborhoods()
     }
 
     fn get_all_neighborhoods(&self) -> DashMap<N, HashSet<N>> {
@@ -34,7 +34,7 @@ where N: Eq + NodeTrait {
     fn add_node(&self, node: N){
         match self.adj_list.get(&node) {
             Some(_) => (),
-            None => {self.adj_list.insert(node, HashSet::new());}
+            None => {self.adj_list.insert(node, HashSet::with_capacity(self.avg_edges));}
         }
     }
 
@@ -53,8 +53,6 @@ where N: Eq + NodeTrait {
     }
 
     fn outgoing_edges(&self, node: N) -> HashSet<N> {
-        assert!(self.directed);
-
         match self.adj_list.get(&node) {
             Some(v) => v.clone(),
             None => HashSet::new()
@@ -72,24 +70,22 @@ where N: Eq + NodeTrait {
         match self.adj_list.get_mut(&a) {
             Some(mut vec) => {vec.insert(b);},
             None => {
-                let mut new_neigh = HashSet::new();
+                let mut new_neigh = HashSet::with_capacity(self.avg_edges);
                 new_neigh.insert(b);
                 self.adj_list.insert(a, new_neigh);
             }
         }
         
         // Since it's an undirected graph, add (b -> a)
-        if !self.is_directed() {
-            match self.adj_list.get_mut(&b) {
-                Some(mut vec) => {vec.insert(a);},
-                None => {
-                    let mut new_neigh = HashSet::new();
-                    new_neigh.insert(a);
-                    self.adj_list.insert(b, new_neigh);
-                }
-
+        match self.adj_list.get_mut(&b) {
+            Some(mut vec) => {vec.insert(a);},
+            None => {
+                let mut new_neigh = HashSet::with_capacity(self.avg_edges);
+                new_neigh.insert(a);
+                self.adj_list.insert(b, new_neigh);
             }
         }
+        
     }
 
     /// Check if a node is contained in the graph
@@ -113,14 +109,23 @@ where N: Eq + NodeTrait {
     pub fn new() -> Self {
         ConcurrentUnGraph {
             adj_list: DashMap::new(),
-            directed: false
+            avg_edges: 1
+        }
+    }
+
+    pub fn with_capacity(num_nodes: usize, num_edges: usize) -> Self {
+        let avg_edges = num_edges / num_nodes; 
+
+        ConcurrentUnGraph{
+            adj_list: DashMap::with_capacity(num_nodes),
+            avg_edges: avg_edges
         }
     }
 
     pub fn from_edges(){}
 
     fn is_directed(&self) -> bool {
-        self.directed
+        false
     }
 
     /// Get neighbors of a node
@@ -147,8 +152,6 @@ where N: Eq + NodeTrait {
 
     // ~ O(|V|)
     pub fn incoming_edges(&self, node: N) -> DashSet<N> {
-        assert!(self.directed); //unnecessary
-
         // {n € N | node € adj_list[n]}
 
         let res: DashSet<N> = DashSet::new();
