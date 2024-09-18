@@ -49,6 +49,7 @@ pub mod prelude {
 
         let mut edges: Vec<(V, V)> = Vec::with_capacity(n_edges);
 
+        //TODO: iterator over lines
         for line in lines {
             let str = line.ok().unwrap();
             let parts: Vec<&str> = str.split_whitespace().collect();
