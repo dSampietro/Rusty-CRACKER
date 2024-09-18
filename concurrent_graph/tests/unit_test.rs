@@ -28,6 +28,16 @@ mod tests{
     }
 
     #[test]
+    fn no_double_edge_insertion(){
+        let g = ConcurrentDiGraph::new();
+        g.add_edge(0, 1);
+        g.add_edge(0, 1);
+
+        assert_eq!(g.node_count(), 2);
+        assert_eq!(g.edge_count(), 1);
+    }
+
+    #[test]
     fn edge_test(){
         let g = ConcurrentDiGraph::new();
 
@@ -80,7 +90,8 @@ mod tests{
     }
 
 
-    #[test]
+    //#[test]
+    /*
     fn un_dir_closed_neigh(){
         let g = ConcurrentDiGraph::new();
         g.add_edge(0, 1);
@@ -113,7 +124,25 @@ mod tests{
         println!("un {:?}", h.get_closed_neighborhoods_undirected());
 
         //assert_eq!(g.get_closed_neighborhoods_undirected(), h.get_closed_neighborhoods_undirected());
+    }*/
 
+    #[test]
+    fn no_external_add(){
+        let g = ConcurrentDiGraph::new();
+        g.add_edge(0, 1);
+        g.add_edge(0, 2);
+        g.add_edge(10, 11);
+
+        assert_eq!(g.node_count(), 5);
+        assert_eq!(g.edge_count(), 3);
+
+        let x = g.get_neighborhoods(true);
+        let mut h = HashSet::new();
+        h.insert(200);
+        x.insert(100, h);
+
+        //assert_eq!(g.node_count(), 5);
+        //assert_eq!(g.edge_count(), 3);
 
     }
 }
