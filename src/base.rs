@@ -76,13 +76,13 @@ fn main() {
     }
 
     let edges: Vec<(V, V)> = edges_result.unwrap_or_default();
-    let graph = ConcurrentUnGraph::<V>::new();
+    let graph: ConcurrentUnGraph<V> = ConcurrentUnGraph::new();
 
     for edge in edges {
         graph.add_edge(edge.0, edge.1);
         graph.add_edge(edge.1, edge.0);
-
     }
+
     //let graph: UnGraphMap<V, ()> = UnGraphMap::from_edges(&edges);
 
 
@@ -116,14 +116,6 @@ fn main() {
         }
 
         num_it += 1;
-
-        /*
-        if gt.edge_count() < 10 {
-            debug_println!("{:?}", gt);
-        }
-        debug_println!("g_{:?} #nodes: {:?}", num_it, gt.node_count());
-        debug_println!("g_{:?} #edges: {:?}", num_it, gt.edge_count());
-        */
     }
 
     //println!("main loop: {:?}", now.elapsed());
