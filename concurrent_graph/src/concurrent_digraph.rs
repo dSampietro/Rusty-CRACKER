@@ -6,6 +6,7 @@ use crate::{GraphTrait, NodeTrait};
 
 /// Adjacency list without weights
 #[derive(Clone, Debug)]
+#[repr(C)]
 pub struct ConcurrentDiGraph<N: NodeTrait> {
     outgoing_edges: DashMap<N, HashSet<N>>,
     incoming_edges: DashMap<N, HashSet<N>>,
@@ -21,7 +22,7 @@ where N: Eq + NodeTrait {
             .collect()        
     }
 
-
+    #[inline]
     fn get_closed_neighborhoods_undirected(&self) -> DashMap<N, HashSet<N>> {
         // join incoming and outgoing edges
         let res: DashMap<N, HashSet<N>> = DashMap::new();
@@ -51,7 +52,7 @@ where N: Eq + NodeTrait {
         res
     }
 
-
+    #[inline(always)]
     fn add_node(&self, node: N){
         match self.outgoing_edges.get(&node) {
             Some(_) => (),
@@ -69,10 +70,12 @@ where N: Eq + NodeTrait {
         self.incoming_edges.remove(&node);
     }
 
+    #[inline]
     fn node_count(&self) -> usize {
         self.outgoing_edges.len()
     }
 
+    #[inline]
     fn edge_count(&self) -> usize {
         self.outgoing_edges.par_iter()
             .map(|entry| entry.value().len())
@@ -88,14 +91,16 @@ where N: Eq + NodeTrait {
 
 
     /// Add an edge between two nodes; parallel edges not allowed, but self-loops are
+    #[inline(always)]
     fn add_edge(&self, a: N, b: N) {
         //maybe use a nodes hashset to keep track of nodes
         
         //is this even useful?
-        /*if !self.outgoing_edges.contains_key(&b){
+        if !self.outgoing_edges.contains_key(&b){
             self.add_node(b);
         }
-
+            
+        /*
         if !self.incoming_edges.contains_key(&a){
             self.add_node(a);
         }*/
@@ -124,11 +129,13 @@ where N: Eq + NodeTrait {
     }
 
     /// Check if a node is contained in the graph
+    #[inline]
     fn contains_node(&self, node: N) -> bool {
         self.outgoing_edges.contains_key(&node)
     }
 
     /// Check if an edge exists between two nodes ~ O(1)
+    #[inline]
     fn contains_edge(&self, node_a: N, node_b: N) -> bool {
         match self.outgoing_edges.get(&node_a) {
             Some(vec) => vec.contains(&node_b),
@@ -137,6 +144,13 @@ where N: Eq + NodeTrait {
     }
 }
 
+
+impl<N> Default for ConcurrentDiGraph<N>
+where N: Eq + NodeTrait {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl<N> ConcurrentDiGraph<N> 
 where N: Eq + NodeTrait {
@@ -155,7 +169,7 @@ where N: Eq + NodeTrait {
         ConcurrentDiGraph {
             outgoing_edges: DashMap::with_capacity(num_nodes),
             incoming_edges: DashMap::with_capacity(num_nodes),
-            avg_edges: avg_edges
+            avg_edges
         }
     }
 
@@ -165,12 +179,15 @@ where N: Eq + NodeTrait {
         true
     }
 
-    pub fn get_neighborhoods(&self, outgoing: bool) -> DashMap<N, HashSet<N>> {
+    /// Get the adjacency list
+    /// UNSAFE: not cloning => allow external mutability
+    #[inline]
+    pub fn get_neighborhoods(&self, outgoing: bool) -> &DashMap<N, HashSet<N>> {
         if outgoing {
-            self.outgoing_edges.clone()
+            &self.outgoing_edges//.clone()
         }
         else {
-            self.incoming_edges.clone()
+            &self.incoming_edges//.clone()
         }
     }
 
@@ -201,7 +218,8 @@ where N: Eq + NodeTrait {
             .for_each( |mut entry| {
                 let key = *entry.key();
                 entry.value_mut().insert(key);
-            });
+            }
+        );
 
         res
     }

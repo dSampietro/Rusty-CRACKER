@@ -42,6 +42,7 @@ where N: Eq + NodeTrait {
         self.adj_list.remove(&node);
     }
 
+    #[inline]
     fn node_count(&self) -> usize {
         self.adj_list.len()
     }
@@ -60,6 +61,7 @@ where N: Eq + NodeTrait {
     }
 
     /// Add an edge between two nodes; parallel edges not allowed, but self-loops are
+    #[inline]
     fn add_edge(&self, a: N, b: N) {
         if !self.adj_list.contains_key(&b){
             self.add_node(b);
@@ -89,11 +91,13 @@ where N: Eq + NodeTrait {
     }
 
     /// Check if a node is contained in the graph
+    #[inline]
     fn contains_node(&self, node: N) -> bool {
         self.adj_list.contains_key(&node)
     }
 
     /// Check if an edge exists between two nodes ~ O(1)
+    #[inline]
     fn contains_edge(&self, node_a: N, node_b: N) -> bool {
         match self.adj_list.get(&node_a) {
             Some(vec) => vec.contains(&node_b),
@@ -102,6 +106,13 @@ where N: Eq + NodeTrait {
     }
 }
 
+
+impl<N> Default for ConcurrentUnGraph<N>
+where N: Eq + NodeTrait {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl<N> ConcurrentUnGraph<N> 
 where N: Eq + NodeTrait {
@@ -118,7 +129,7 @@ where N: Eq + NodeTrait {
 
         ConcurrentUnGraph{
             adj_list: DashMap::with_capacity(num_nodes),
-            avg_edges: avg_edges
+            avg_edges
         }
     }
 
