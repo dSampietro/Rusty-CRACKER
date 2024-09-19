@@ -87,7 +87,7 @@ fn main() {
 
 
 
-    let tree = ConcurrentDiGraph::<V>::new();
+    let tree = ConcurrentDiGraph::with_capacity(graph.node_count(), graph.node_count());
 
     let mut gt = graph.clone();
     let mut t = tree.clone();
