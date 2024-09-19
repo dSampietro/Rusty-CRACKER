@@ -95,7 +95,6 @@ where N: Eq + NodeTrait {
     fn add_edge(&self, a: N, b: N) {
         //maybe use a nodes hashset to keep track of nodes
         
-        //is this even useful?
         if !self.outgoing_edges.contains_key(&b){
             self.add_node(b);
         }
@@ -167,8 +166,8 @@ where N: Eq + NodeTrait {
         let avg_edges = num_edges / num_nodes; 
 
         ConcurrentDiGraph {
-            outgoing_edges: DashMap::with_capacity(num_nodes),
-            incoming_edges: DashMap::with_capacity(num_nodes),
+            outgoing_edges: DashMap::with_capacity_and_shard_amount(num_nodes, num_nodes.next_power_of_two()),//DashMap::with_capacity(num_nodes),
+            incoming_edges: DashMap::with_capacity_and_shard_amount(num_nodes, num_nodes.next_power_of_two()),//DashMap::with_capacity(num_nodes),
             avg_edges
         }
     }

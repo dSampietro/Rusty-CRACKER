@@ -128,7 +128,7 @@ where N: Eq + NodeTrait {
         let avg_edges = num_edges / num_nodes; 
 
         ConcurrentUnGraph{
-            adj_list: DashMap::with_capacity(num_nodes),
+            adj_list: DashMap::with_capacity_and_shard_amount(num_nodes, num_nodes.next_power_of_two()), //DashMap::with_capacity(num_nodes),
             avg_edges
         }
     }
