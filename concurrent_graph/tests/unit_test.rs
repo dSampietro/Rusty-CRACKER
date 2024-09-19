@@ -145,4 +145,17 @@ mod tests{
         //assert_eq!(g.edge_count(), 3);
 
     }
+
+    //problem: removing nodes DO NOT remove edges
+    /*
+    #[test]
+    fn node_removal_test(){
+        let g = ConcurrentDiGraph::with_capacity(10, 10);
+        g.add_edge(0,1);
+        g.add_edge(1,2);
+
+        g.remove_node(1);
+        assert_eq!(g.node_count(), 2);
+        assert_eq!(g.edge_count(), 0);
+    }*/
 }
