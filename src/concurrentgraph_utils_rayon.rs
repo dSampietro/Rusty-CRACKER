@@ -139,7 +139,7 @@ pub fn prune<N: NodeTrait + Send + Sync + Debug>(
     let pruned_graph = ConcurrentUnGraph::with_capacity(h.node_count(), h.edge_count());
 
     //add to G(t+1) + deactivation
-    let deactivated_nodes: DashSet<N> = DashSet::new();
+    let deactivated_nodes: DashSet<N> = DashSet::with_capacity(h.node_count());
 
     outgoing_neighborhoods.par_iter().for_each(|entry| {
         let (u, neighbors) = entry.pair();
@@ -199,7 +199,7 @@ pub fn prune_os<N: NodeTrait + Debug>(
     let outgoing_neighborhoods = h.get_neighborhoods(true);
     let min_outgoing_neighborhoods = get_vmins(&h);
 
-    let pruned_graph = ConcurrentDiGraph::<N>::with_capacity(h.node_count(), h.edge_count());
+    let pruned_graph = ConcurrentDiGraph::with_capacity(h.node_count(), h.edge_count());
 
     //add to G_(t+1) + deactivation
     let deactivated_nodes: DashSet<N> = DashSet::with_capacity(h.node_count());
