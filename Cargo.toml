@@ -13,6 +13,8 @@ io_util = {path = "io_util/"}
 rayon = "1.10.0"
 #rustworkx-core = "0.15.1"  #for naive algorithm
 
+#[build]
+#rustflags = ["-C", "symbol-mangling-version=v0"]
 
 # ----------------- TEST -----------------
 #[[bin]]
