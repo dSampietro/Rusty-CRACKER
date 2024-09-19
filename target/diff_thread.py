@@ -46,7 +46,7 @@ progs = ["base", "ep", "epos"]
 name = "syn_1M_10M"     #no extension
 files = f"syn/{name}.mtx"
 
-N_THREADS = [1, 2, 4, 8]
+N_THREADS = [1, 2, 8]
 N_RUNS = 1
 
 info = pd.DataFrame()
