@@ -43,11 +43,11 @@ def calc_times_with_nThreads(prog: str, file: str, n_threads: List[int], n_runs 
 
 progs = ["base", "ep", "epos"]
 
-name = "syn_1M_10M"     #no extension
+name = "syn_2M_10M"     #no extension
 files = f"syn/{name}.mtx"
 
-N_THREADS = [1, 2, 8]
-N_RUNS = 1
+N_THREADS = [ 2, 4, 8]
+N_RUNS = 4
 
 info = pd.DataFrame()
 info["num_threads"] = N_THREADS
