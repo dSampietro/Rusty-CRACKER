@@ -2,7 +2,7 @@ use dashmap::DashMap;
 use std::collections::HashSet;
 use rayon::prelude::*;
 
-use crate::{GraphTrait, NodeTrait};
+use crate::NodeTrait;
 
 /// Adjacency list without weights
 #[derive(Clone, Debug)]
@@ -13,143 +13,21 @@ pub struct ConcurrentDiGraph<N: NodeTrait> {
     avg_edges: usize
 }
 
-impl<N> GraphTrait<N> for ConcurrentDiGraph<N> 
-where N: Eq + NodeTrait {
-    fn nodes(&self) -> Vec<N> {
-        self.outgoing_edges
-            .par_iter()
-            .map(|entry| *entry.key())
-            .collect()        
-    }
-
-    #[inline]
-    fn get_closed_neighborhoods_undirected(&self) -> DashMap<N, HashSet<N>> {
-        // join incoming and outgoing edges
-        let res: DashMap<N, HashSet<N>> = DashMap::new();
-
-        self.nodes().par_iter().for_each(|&n| {
-            let mut neighs = self.incoming_edges(n);
-            neighs.extend(self.outgoing_edges(n));
-            neighs.insert(n);
-            
-            res.insert(n, neighs);
-        });
-
-        res
-    }
-
-    fn get_all_neighborhoods(&self) -> DashMap<N, HashSet<N>> {
-        // join incoming and outgoing edges
-        let res: DashMap<N, HashSet<N>> = DashMap::new();
-
-        self.nodes().par_iter().for_each(|&n| {
-            let mut neighs = self.incoming_edges(n);
-            neighs.extend(self.outgoing_edges(n));
-            
-            res.insert(n, neighs);
-        });
-
-        res
-    }
-
-    #[inline(always)]
-    fn add_node(&self, node: N){
-        match self.outgoing_edges.get(&node) {
-            Some(_) => (),
-            None => {self.outgoing_edges.insert(node, HashSet::with_capacity(self.avg_edges));}
-        }
-
-        match self.incoming_edges.get(&node) {
-            Some(_) => (),
-            None => {self.incoming_edges.insert(node, HashSet::with_capacity(self.avg_edges));}
-        }
-    }
-
-    fn remove_node(&self, node: N){
-        self.outgoing_edges.remove(&node);
-        self.incoming_edges.remove(&node);
-    }
-
-    #[inline]
-    fn node_count(&self) -> usize {
-        self.outgoing_edges.len()
-    }
-
-    #[inline]
-    fn edge_count(&self) -> usize {
-        self.outgoing_edges.par_iter()
-            .map(|entry| entry.value().len())
-            .sum()
-    }
-
-    fn outgoing_edges(&self, node: N) -> HashSet<N> {
-        match self.outgoing_edges.get(&node) {
-            Some(v) => v.clone(),
-            None => HashSet::new()
-        }
-    }
-
-
-    /// Add an edge between two nodes; parallel edges not allowed, but self-loops are
-    #[inline(always)]
-    fn add_edge(&self, a: N, b: N) {
-        //maybe use a nodes hashset to keep track of nodes
-        
-        if !self.outgoing_edges.contains_key(&b){
-            self.add_node(b);
-        }
-            
-        /*
-        if !self.incoming_edges.contains_key(&a){
-            self.add_node(a);
-        }*/
-
-
-        // Add (a -> b) to outgoing_edges
-        match self.outgoing_edges.get_mut(&a) {
-            Some(mut vec) => {vec.insert(b);},
-            None => {
-                let mut new_neigh = HashSet::with_capacity(self.avg_edges);
-                new_neigh.insert(b);
-                self.outgoing_edges.insert(a, new_neigh);
-            }
-        }
-        
-        // Add (b <- a) to incoming_edges
-        match self.incoming_edges.get_mut(&b) {
-            Some(mut vec) => {vec.insert(a);},
-            None => {
-                let mut new_neigh = HashSet::with_capacity(self.avg_edges);
-                new_neigh.insert(a);
-                self.incoming_edges.insert(b, new_neigh);
-            }
-        }
-    
-    }
-
-    /// Check if a node is contained in the graph
-    #[inline]
-    fn contains_node(&self, node: N) -> bool {
-        self.outgoing_edges.contains_key(&node)
-    }
-
-    /// Check if an edge exists between two nodes ~ O(1)
-    #[inline]
-    fn contains_edge(&self, node_a: N, node_b: N) -> bool {
-        match self.outgoing_edges.get(&node_a) {
-            Some(vec) => vec.contains(&node_b),
-            None => false
-        }
-    }
-}
-
-
+/*
 impl<N> Default for ConcurrentDiGraph<N>
 where N: Eq + NodeTrait {
     fn default() -> Self {
         Self::new()
     }
-}
+}*/
+
+/*
+impl<N> GraphTrait<N> for ConcurrentDiGraph<N> 
+where N: Eq + NodeTrait {
+    
+}*/
+
+
 
 impl<N> ConcurrentDiGraph<N> 
 where N: Eq + NodeTrait {
@@ -191,7 +69,7 @@ where N: Eq + NodeTrait {
     }
 
     /// Get neighbors of a node
-    fn neighbors(&self, node: N, outgoing: bool) -> HashSet<N> {
+    pub fn neighbors(&self, node: N, outgoing: bool) -> HashSet<N> {
         let neigh = if outgoing {self.outgoing_edges.get(&node)} else {self.incoming_edges.get(&node)};
 
         match neigh {
@@ -227,6 +105,134 @@ where N: Eq + NodeTrait {
         match self.incoming_edges.get(&node) {
             Some(v) => v.clone(),
             None => HashSet::new()
+        }
+    }
+
+
+    pub fn nodes(&self) -> Vec<N> {
+        self.outgoing_edges
+            .par_iter()
+            .map(|entry| *entry.key())
+            .collect()        
+    }
+
+    #[inline]
+    pub fn get_closed_neighborhoods_undirected(&self) -> DashMap<N, HashSet<N>> {
+        // join incoming and outgoing edges
+        let res: DashMap<N, HashSet<N>> = DashMap::with_capacity(self.outgoing_edges.len());
+
+        self.nodes().par_iter().for_each(|&n| {
+            let mut neighs = self.incoming_edges(n);
+            neighs.extend(self.outgoing_edges(n));
+            neighs.insert(n);
+            
+            res.insert(n, neighs);
+        });
+
+        res
+    }
+
+    pub fn get_all_neighborhoods(&self) -> DashMap<N, HashSet<N>> {
+        // join incoming and outgoing edges
+        let res: DashMap<N, HashSet<N>> = DashMap::with_capacity(self.outgoing_edges.len());
+
+        self.nodes().par_iter().for_each(|&n| {
+            let mut neighs = self.incoming_edges(n);
+            neighs.extend(self.outgoing_edges(n));
+            
+            res.insert(n, neighs);
+        });
+
+        res
+    }
+
+    #[inline(always)]
+    pub fn add_node(&self, node: N){
+        match self.outgoing_edges.get(&node) {
+            Some(_) => (),
+            None => {self.outgoing_edges.insert(node, HashSet::with_capacity(self.avg_edges));}
+        }
+
+        match self.incoming_edges.get(&node) {
+            Some(_) => (),
+            None => {self.incoming_edges.insert(node, HashSet::with_capacity(self.avg_edges));}
+        }
+    }
+
+    pub fn remove_node(&self, node: N){
+        self.outgoing_edges.remove(&node);
+        self.incoming_edges.remove(&node);
+    }
+
+    #[inline]
+    pub fn node_count(&self) -> usize {
+        self.outgoing_edges.len()
+    }
+
+    #[inline]
+    pub fn edge_count(&self) -> usize {
+        self.outgoing_edges.par_iter()
+            .map(|entry| entry.value().len())
+            .sum()
+    }
+
+    pub fn outgoing_edges(&self, node: N) -> HashSet<N> {
+        match self.outgoing_edges.get(&node) {
+            Some(v) => v.clone(),
+            None => HashSet::new()
+        }
+    }
+
+
+    /// Add an edge between two nodes; parallel edges not allowed, but self-loops are
+    #[inline(always)]
+    pub fn add_edge(&self, a: N, b: N) {
+        //maybe use a nodes hashset to keep track of nodes
+        
+        if !self.outgoing_edges.contains_key(&b){
+            self.add_node(b);
+        }
+            
+        /*
+        if !self.incoming_edges.contains_key(&a){
+            self.add_node(a);
+        }*/
+
+
+        // Add (a -> b) to outgoing_edges
+        match self.outgoing_edges.get_mut(&a) {
+            Some(mut vec) => {vec.insert(b);},
+            None => {
+                let mut new_neigh = HashSet::with_capacity(self.avg_edges);
+                new_neigh.insert(b);
+                self.outgoing_edges.insert(a, new_neigh);
+            }
+        }
+        
+        // Add (b <- a) to incoming_edges
+        match self.incoming_edges.get_mut(&b) {
+            Some(mut vec) => {vec.insert(a);},
+            None => {
+                let mut new_neigh = HashSet::with_capacity(self.avg_edges);
+                new_neigh.insert(a);
+                self.incoming_edges.insert(b, new_neigh);
+            }
+        }
+    
+    }
+
+    /// Check if a node is contained in the graph
+    #[inline]
+    pub fn contains_node(&self, node: N) -> bool {
+        self.outgoing_edges.contains_key(&node)
+    }
+
+    /// Check if an edge exists between two nodes ~ O(1)
+    #[inline]
+    pub fn contains_edge(&self, node_a: N, node_b: N) -> bool {
+        match self.outgoing_edges.get(&node_a) {
+            Some(vec) => vec.contains(&node_b),
+            None => false
         }
     }
 }
