@@ -1,14 +1,30 @@
 #![allow(dead_code)]
 use dashmap::{DashMap, DashSet};
 use rayon::prelude::*;
-use std::{collections::{HashMap, HashSet}, fmt::Debug};
+use std::collections::{HashMap, HashSet};
 
 //use crate::concurrent_graph::{ConcurrentDiGraph, ConcurrentGraph, ConcurrentUnGraph, NodeTrait};
-use concurrent_graph::{ConcurrentDiGraph, ConcurrentUnGraph, NodeTrait, GraphTrait};
+use concurrent_graph::{ConcurrentDiGraph, ConcurrentUnGraph, NodeTrait};
 
 /// Get the min neighbor of every node
-fn get_vmins<G, V>(graph: &G) -> DashMap<V, V> 
-where G: GraphTrait<V>, V: NodeTrait + Send + Sync {
+fn get_vmins<V>(graph: &ConcurrentUnGraph<V>) -> DashMap<V, V> 
+where V: NodeTrait + Send + Sync {
+    let v_mins: DashMap<V, V> = DashMap::with_capacity(graph.node_count());
+
+    //since get_vmins should be the same with Un/Direceted graphs, get_closed_neighborhoods should be the same in both cases
+    // get_closed_neighborhoods => get_closed_neighborhoods_undirected
+    graph.get_closed_neighborhoods_undirected().par_iter().for_each( |entry| {
+        let key = entry.key();
+        let v_min = entry.value().iter().min().unwrap();
+
+        v_mins.insert(*key, *v_min);
+    });
+
+    v_mins
+}
+
+fn get_vmins_directed<V>(graph: &ConcurrentDiGraph<V>) -> DashMap<V, V> 
+where V: NodeTrait + Send + Sync {
     let v_mins: DashMap<V, V> = DashMap::with_capacity(graph.node_count());
 
     //since get_vmins should be the same with Un/Direceted graphs, get_closed_neighborhoods should be the same in both cases
@@ -25,9 +41,9 @@ where G: GraphTrait<V>, V: NodeTrait + Send + Sync {
 
 pub fn min_selection_base<N>(g: &ConcurrentUnGraph<N>) -> ConcurrentDiGraph<N>
 where
-    N: NodeTrait + Eq + Send + Sync + Debug,
+    N: NodeTrait,
 {
-    let neighborhoods: DashMap<N, HashSet<N>> = g.get_closed_neighborhoods();
+    let neighborhoods = g.get_closed_neighborhoods();
     //println!("[MS]: neighborhoods = {neighborhoods:?}"); //debug
 
     let v_mins: DashMap<N, N> = get_vmins(g);
@@ -59,14 +75,11 @@ where
     h
 }
 
-
 // with Edge Pruning
-pub fn min_selection_ep<G, N>(g: &G) -> ConcurrentDiGraph<N>
-where
-    G: GraphTrait<N>,
-    N: NodeTrait + Eq + Send + Sync + Debug,
+pub fn min_selection_ep<N>(g: &ConcurrentUnGraph<N>) -> ConcurrentDiGraph<N>
+where N: NodeTrait + Eq,
 {
-    let neighborhoods: DashMap<N, HashSet<N>> = g.get_all_neighborhoods();
+    let neighborhoods = g.get_all_neighborhoods();
     let v_mins: DashMap<N, N> = get_vmins(g);
 
     // create directed graph h
@@ -125,8 +138,70 @@ where
 }
 
 
+pub fn min_selection_ep_directed<N>(g: &ConcurrentDiGraph<N>) -> ConcurrentDiGraph<N>
+where N: NodeTrait + Eq + Send + Sync,
+{
+    let neighborhoods: DashMap<N, HashSet<N>> = g.get_all_neighborhoods();
+    let v_mins: DashMap<N, N> = get_vmins_directed(g);
 
-pub fn prune<N: NodeTrait + Send + Sync + Debug>(
+    // create directed graph h
+    let h: ConcurrentDiGraph<N> = ConcurrentDiGraph::with_capacity(g.node_count(), g.edge_count());
+
+    //add edges
+    //let mut neighborhoods_entries: Vec<_> = neighborhoods.iter().collect();
+    
+    //why sort? 
+    //neighborhoods_entries.sort_by(|a, b| a.key().cmp(b.key()));
+
+    //can be par_iterated
+    neighborhoods
+    .par_iter()
+    .for_each(|entry|{
+
+        let &&n = &entry.key();
+        let &neighbors = &entry.value();
+
+        let n_min_opt = v_mins.get(&n);
+        /*if n_min_opt.is_none() {
+            continue;
+        }*/
+        let n_min = *n_min_opt.unwrap();
+
+        //when a node is the minimum of its neighbourhood, it does not need to notify this information to its neighbours
+        if n == n_min {
+            neighbors.iter().for_each(|z| {
+                let z_min = *v_mins.get(z).unwrap();    //can safely unwrap because all keys (nodes) are preseved (present) in v_mins
+
+                //when a node u is the local minimum in NN(u), [u = u_min] there are two exclusive cases
+                if z_min == n {
+                    h.add_edge(*z, n);
+                    //eprintln!("[caso A] adding edge {:?}->{:?}", *z, n);
+                } else {
+                    h.add_edge(*z, z_min);
+                    //eprintln!("[caso B] adding edge {:?}->{:?}", *z, z_min);
+
+                    h.add_edge(n, z_min);
+                    //eprintln!("[caso B] adding edge {:?}->{:?}", n, z_min);
+                }
+                //eprintln!("removing {:?}", &z);
+            });
+        } 
+        else {
+            h.add_edge(n, n_min); // => get_neighborhood return <neighbors + node>
+            //eprintln!("[caso C] adding edge {:?}->{:?}", n, n_min);
+            neighbors.iter().for_each(|node| {
+                //eprintln!("adding: {:?} -> {:?}", node, v_min);
+                h.add_edge(*node, n_min);
+                //eprintln!("[caso C] adding edge {:?}->{:?}", *node, n_min);
+            });
+        }
+    });
+    h
+}
+
+
+
+pub fn prune<N: NodeTrait>(
     h: ConcurrentDiGraph<N>,
     tree: ConcurrentDiGraph<N>,
 ) -> (ConcurrentUnGraph<N>, ConcurrentDiGraph<N>) {
@@ -134,7 +209,7 @@ pub fn prune<N: NodeTrait + Send + Sync + Debug>(
     //get outgoing neighborhoods
     let outgoing_neighborhoods = h.get_neighborhoods(true);
 
-    let min_outgoing_neighborhoods = get_vmins(&h);
+    let min_outgoing_neighborhoods = get_vmins_directed(&h);
 
     let pruned_graph = ConcurrentUnGraph::with_capacity(h.node_count(), h.edge_count());
 
@@ -178,26 +253,24 @@ pub fn prune<N: NodeTrait + Send + Sync + Debug>(
         }*/
     });
 
-    //let deactivated_nodes: Vec<N> = deactivated_nodes_mutex.into_inner().unwrap_or_default();
-    //deactivated_nodes.sort_unstable_by(|a, b| b.cmp(a));    //sort + reverse
-
-
-    deactivated_nodes.iter().for_each(|deactivated| {
-        //eprintln!("Removing node: {:?}", deactivated);
-        pruned_graph.remove_node(*deactivated);
+    deactivated_nodes
+        .par_iter()
+        .for_each(|deactivated| {
+            //eprintln!("Removing node: {:?}", deactivated);
+            pruned_graph.remove_node(*deactivated);
     });
 
     (pruned_graph, tree)
 }
 
 
-pub fn prune_os<N: NodeTrait + Debug>(
+pub fn prune_os<N: NodeTrait>(
     h: ConcurrentDiGraph<N>,
     tree: ConcurrentDiGraph<N>,
 ) -> (ConcurrentDiGraph<N>, ConcurrentDiGraph<N>) {
     //get outgoing neighborhoods
     let outgoing_neighborhoods = h.get_neighborhoods(true);
-    let min_outgoing_neighborhoods = get_vmins(&h);
+    let min_outgoing_neighborhoods = get_vmins_directed(&h);
 
     let pruned_graph = ConcurrentDiGraph::with_capacity(h.node_count(), h.edge_count());
 
@@ -250,14 +323,14 @@ pub fn prune_os<N: NodeTrait + Debug>(
 
 
 
-pub fn seed_propagation<V: NodeTrait + Debug>(tree: &ConcurrentDiGraph<V>) -> HashMap<V, V> {
-    let start = std::time::Instant::now();
+pub fn seed_propagation<V: NodeTrait>(tree: &ConcurrentDiGraph<V>) -> HashMap<V, V> {
+    //let start = std::time::Instant::now();
 
     let mut seeds_map: HashMap<V, V> = HashMap::with_capacity(tree.node_count());
 
     let mut nodes: Vec<V> = tree.nodes();
     nodes.sort_unstable(); //no duplicates => can use unstable sorting (more efficient)
-    eprintln!("after sorting: {:?}", start.elapsed());
+    //eprintln!("after sorting: {:?}", start.elapsed());
 
     assert_eq!(nodes.len(), tree.node_count());
 
@@ -299,7 +372,7 @@ pub fn seed_propagation<V: NodeTrait + Debug>(tree: &ConcurrentDiGraph<V>) -> Ha
 }
 
 
-pub fn par_seed_propagation<V: NodeTrait + Debug>(tree: &ConcurrentDiGraph<V>) -> DashMap<V, V> {
+pub fn par_seed_propagation<V: NodeTrait>(tree: &ConcurrentDiGraph<V>) -> DashMap<V, V> {
     let seeds_map = DashMap::with_capacity(tree.node_count());
 
     tree.nodes().par_iter().for_each(|&n| {
