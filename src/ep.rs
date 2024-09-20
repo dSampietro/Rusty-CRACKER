@@ -1,4 +1,4 @@
-use concurrent_graph::{ConcurrentDiGraph, ConcurrentUnGraph, GraphTrait};
+use concurrent_graph::{ConcurrentDiGraph, ConcurrentUnGraph};
 use dashmap::DashSet;
 use getopts::Options;
 use io_util::{debug_println, prelude::read_from_file};

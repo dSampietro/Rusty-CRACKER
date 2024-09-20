@@ -1,20 +1,16 @@
-use concurrent_graph::{ConcurrentDiGraph, GraphTrait};
+use concurrent_graph::ConcurrentDiGraph;
 use dashmap::DashSet;
 use getopts::Options;
-use io_util::prelude::read_from_file;
+use io_util::{debug_println, prelude::read_from_file};
 
 use std::env;
 
 mod concurrentgraph_utils_rayon;
-use concurrentgraph_utils_rayon::{min_selection_ep, par_seed_propagation, prune_os};
+use concurrentgraph_utils_rayon::{min_selection_ep_directed, par_seed_propagation, prune_os};
 
 use rayon::ThreadPoolBuilder;
 
 // ~20 ms / 50k edges
-
-macro_rules! debug_println {
-    ($($arg:tt)*) => (if ::std::cfg!(debug_assertions) { ::std::println!($($arg)*); })
-}
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
@@ -85,7 +81,7 @@ fn main() {
 
     let tree = ConcurrentDiGraph::<V>::new();
 
-    let mut gt = graph.clone();
+    let gt = graph.clone();
     let mut t = tree.clone();
 
     let mut num_it = 1;
@@ -95,15 +91,15 @@ fn main() {
 
     loop {
         //min selection
-        let h: ConcurrentDiGraph<V> = min_selection_ep(&gt);
-        //debug_println!("h_{:?} #edges: {:?}", num_it, gt.edge_count());
+        let h: ConcurrentDiGraph<V> = min_selection_ep_directed(&gt);
+        debug_println!("h_{:?} #edges: {:?}", num_it, gt.edge_count());
         debug_println!("@ min_selection_{num_it}: {:?}", now.elapsed());
 
         //pruning
-        let (temp_g, tree) = prune_os(h, t);
+        let (gt, tree) = prune_os(h, t);
         debug_println!("@ pruning_{num_it}: {:?}", now.elapsed());
 
-        gt = temp_g;
+        //gt = temp_g;
         //println!("g{num_it}: {:?}", gt);
         t = tree;
 
