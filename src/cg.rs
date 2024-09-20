@@ -1,5 +1,5 @@
 #![allow(unused_imports)]
-use concurrent_graph::{ConcurrentDiGraph, ConcurrentUnGraph, GraphTrait};
+use concurrent_graph::{ConcurrentDiGraph, ConcurrentUnGraph};
 use concurrentgraph_utils_rayon::{min_selection_base, par_seed_propagation, prune};
 use dashmap::DashSet;
 use rayon::{iter, ThreadPoolBuilder};
