@@ -127,6 +127,4 @@ fn main() {
     debug_println!("#CC: {:?}", num_conn_comp.len());
     //println!("seeds: {:?}", num_conn_comp);
     println!("end: {:?}", now.elapsed());
-
-
 }
