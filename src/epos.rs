@@ -126,6 +126,7 @@ fn main() {
     let num_conn_comp: DashSet<u32> = seeds.iter().map(|entry| *entry.value()).collect();
     debug_println!("#CC: {:?}", num_conn_comp.len());
     //println!("seeds: {:?}", num_conn_comp);
+    println!("end: {:?}", now.elapsed());
 
 
 }
