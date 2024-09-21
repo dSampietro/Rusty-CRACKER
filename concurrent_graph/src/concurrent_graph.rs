@@ -10,6 +10,7 @@ use crate::NodeTrait;
 #[derive(Clone)]
 pub struct ConcurrentGraph<N: NodeTrait> {
     adj_list: DashMap<N, HashSet<N>>,  // Adjacency list without weights
+    avg_edges: usize,
     directed: bool
 }
 
@@ -19,6 +20,7 @@ where N: Eq + NodeTrait {
     pub fn new(is_directed: bool) -> Self {
         ConcurrentGraph {
             adj_list: DashMap::new(),
+            avg_edges: 1,
             directed: is_directed
         }
     }
@@ -51,12 +53,19 @@ where N: Eq + NodeTrait {
     pub fn add_node(&self, node: N){
         match self.adj_list.get(&node) {
             Some(_) => (),
-            None => {self.adj_list.insert(node, HashSet::new());}
+            None => {self.adj_list.insert(node, HashSet::with_capacity(self.avg_edges));}
         }
     }
 
     pub fn remove_node(&self, node: N){
         self.adj_list.remove(&node);
+
+        /*
+        //filtering edges is too expensive ~O(|V|)
+        self.adj_list.iter_mut().for_each(|mut entry| {
+            (*entry).remove(&node);
+        });
+        */
     }
 
     pub fn node_count(&self) -> usize {
@@ -107,7 +116,7 @@ where N: Eq + NodeTrait {
         match self.adj_list.get_mut(&a) {
             Some(mut vec) => {vec.insert(b);},
             None => {
-                let mut new_neigh = HashSet::new();
+                let mut new_neigh = HashSet::with_capacity(self.avg_edges);
                 new_neigh.insert(b);
                 self.adj_list.insert(a, new_neigh);
             }
@@ -118,7 +127,7 @@ where N: Eq + NodeTrait {
             match self.adj_list.get_mut(&b) {
                 Some(mut vec) => {vec.insert(a);},
                 None => {
-                    let mut new_neigh = HashSet::new();
+                    let mut new_neigh = HashSet::with_capacity(self.avg_edges);
                     new_neigh.insert(a);
                     self.adj_list.insert(b, new_neigh);
                 }
@@ -157,10 +166,30 @@ impl<N: NodeTrait> ConcurrentUnGraph<N> {
     pub fn new_undirected() -> Self {
         ConcurrentGraph::new(false)
     }
+
+    pub fn with_capacity_undirected(num_nodes: usize, num_edges: usize) -> Self {
+        let avg_edges = num_edges / num_nodes; 
+
+        ConcurrentGraph{
+            adj_list: DashMap::with_capacity_and_shard_amount(num_nodes, num_nodes.next_power_of_two()), //DashMap::with_capacity(num_nodes),
+            avg_edges,
+            directed: false
+        }
+    }
 }
 pub type ConcurrentDiGraph<N> = ConcurrentGraph<N>;
 impl<N: NodeTrait> ConcurrentDiGraph<N> {
     pub fn new_directed() -> Self {
         ConcurrentGraph::new(true)
+    }
+
+    pub fn with_capacity_directed(num_nodes: usize, num_edges: usize) -> Self {
+        let avg_edges = num_edges / num_nodes; 
+
+        ConcurrentGraph{
+            adj_list: DashMap::with_capacity_and_shard_amount(num_nodes, num_nodes.next_power_of_two()), //DashMap::with_capacity(num_nodes),
+            avg_edges,
+            directed: true
+        }
     }
 }
