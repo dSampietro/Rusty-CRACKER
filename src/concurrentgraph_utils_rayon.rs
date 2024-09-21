@@ -3,7 +3,7 @@ use dashmap::{DashMap, DashSet};
 use rayon::prelude::*;
 use std::{collections::{HashMap, HashSet}, fmt::Debug};
 
-use crate::concurrent_graph::{ConcurrentDiGraph, ConcurrentGraph, ConcurrentUnGraph, NodeTrait};
+use concurrent_graph::{ConcurrentDiGraph, ConcurrentGraph, ConcurrentUnGraph, NodeTrait};
 
 
 /// Get the min neighbor of every node
@@ -37,7 +37,7 @@ where
     neighborhoods.par_iter().for_each(|entry| {
         let (u, neighbors) = entry.pair();
         //println!("[MS- Iter neighborhoods]: {u:?}");  //debug
-        let v_min_option = v_mins.get(&u);
+        let v_min_option = v_mins.get(u);
 
         if v_min_option.is_none() {
             return;
@@ -47,10 +47,11 @@ where
 
         // base
         h.add_edge(*u, v_min);
-        for node in neighbors {
+        
+        neighbors.iter().for_each(|node| {
             //eprintln!("[h] adding: {:?} -> {:?}", node, v_min);
             h.add_edge(*node, v_min);
-        }
+        });
 
     });
 
@@ -91,7 +92,7 @@ where
 
         //when a node is the minimum of its neighbourhood, it does not need to notify this information to its neighbours
         if n == n_min {
-            for z in neighbors {
+            neighbors.iter().for_each(|z| {
                 let z_min = *v_mins.get(z).unwrap();    //can safely unwrap because all keys (nodes) are preseved (present) in v_mins
 
                 //when a node u is the local minimum in NN(u), [u = u_min] there are two exclusive cases
@@ -106,15 +107,15 @@ where
                     //eprintln!("[caso B] adding edge {:?}->{:?}", n, z_min);
                 }
                 //eprintln!("removing {:?}", &z);
-            }
+            });
         } else {
             h.add_edge(n, n_min); // => get_neighborhood return <neighbors + node>
             //eprintln!("[caso C] adding edge {:?}->{:?}", n, n_min);
-            for node in neighbors {
+            neighbors.iter().for_each(|node| {
                 //eprintln!("adding: {:?} -> {:?}", node, v_min);
                 h.add_edge(*node, n_min);
                 //eprintln!("[caso C] adding edge {:?}->{:?}", *node, n_min);
-            }
+            });
         }
     });
     h
@@ -153,12 +154,12 @@ pub fn prune<N: NodeTrait + Send + Sync + Debug>(
         if neighbors.len() > 1 {
             let v_min = *min_outgoing_neighborhoods.get(u).unwrap();
 
-            for v in neighbors {
+            neighbors.iter().for_each(|v| {
                 if *v != v_min {
                     pruned_graph.add_edge(*v, v_min);
                     //eprintln!("[g]: adding edge {:?} -> {:?}", *v, v_min);
                 }
-            }
+            });
         }
 
         //deactivate nodes
@@ -188,10 +189,10 @@ pub fn prune<N: NodeTrait + Send + Sync + Debug>(
     //deactivated_nodes.sort_unstable_by(|a, b| b.cmp(a));    //sort + reverse
 
 
-    for deactivated in deactivated_nodes {
+    deactivated_nodes.iter().for_each(|deactivated| {
         //eprintln!("Removing node: {:?}", deactivated);
-        pruned_graph.remove_node(deactivated);
-    }
+        pruned_graph.remove_node(*deactivated);
+    });
 
     (pruned_graph, tree)
 }
@@ -219,11 +220,11 @@ pub fn prune_os<N: NodeTrait + Debug>(
         if neighbors.len() > 1 {
             let v_min = *min_outgoing_neighborhoods.get(u).unwrap();
 
-            for v in neighbors {
+            neighbors.iter().for_each(|v| {
                 if *v != v_min {
                     pruned_graph.add_edge(*v, v_min);
                 }
-            }
+            });
         }
 
         //deactivate nodes
@@ -273,16 +274,16 @@ pub fn seed_propagation<V: NodeTrait + Debug>(tree: ConcurrentDiGraph<V>) -> Has
 
 
         //TODO: HashMap -> DashMap and par_iter
-        for from in incoming_edge {
+        incoming_edge.iter().for_each(|from| {
             //eprintln!("Node {:?}, edge {:?}", min_node, edge);
 
             if seeds_map.contains_key(&from) {
                 let parent_seed = seeds_map.get(&from).unwrap();
                 seeds_map.insert(min_node, *parent_seed);
             } else {
-                seeds_map.insert(min_node, from);
+                seeds_map.insert(min_node, *from);
             }
-        }
+        });
 
         //no incoming edge into node => node is root of a tree
         seeds_map
@@ -293,4 +294,46 @@ pub fn seed_propagation<V: NodeTrait + Debug>(tree: ConcurrentDiGraph<V>) -> Has
     }
 
     seeds_map
+}
+
+//use seeds_map to memoize??
+pub fn par_seed_propagation<V: NodeTrait>(tree: &ConcurrentDiGraph<V>) -> DashMap<V, V> {
+    let seeds_map = DashMap::with_capacity(tree.node_count());
+
+    tree.nodes().par_iter().for_each(|&n| {
+        let incoming = tree.incoming_edges(n);
+
+        if incoming.is_empty() {
+            seeds_map.insert(n, n); //node is root
+        }
+        else {
+            let node_father = &*incoming.iter().next().unwrap();    //safely unwrap: if empty, already handled before
+            if seeds_map.contains_key(node_father) {
+                let v = *seeds_map.get(node_father).unwrap();
+                seeds_map.insert(n, v);
+            }
+            else {
+                seeds_map.insert(n, get_root(tree, n));
+            }
+        }
+    });
+
+    seeds_map
+}
+
+fn get_root<V: NodeTrait>(tree: &ConcurrentDiGraph<V>, node: V) -> V{
+    /*
+    - get incoming
+    - if incoming.empty -> node
+    - else incoming.get -> recursive
+    */
+
+    let incoming = tree.incoming_edges(node);
+    
+    if incoming.is_empty() {
+        node
+    }
+    else{
+        get_root(tree, *incoming.iter().next().unwrap())
+    }
 }
