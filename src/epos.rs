@@ -1,25 +1,18 @@
 use concurrent_graph::ConcurrentDiGraph;
+use dashmap::DashSet;
 use getopts::Options;
-mod concurrent_graph;
 
 //use petgraph::graphmap::{DiGraphMap, UnGraphMap};
-use std::{collections::HashSet, env};
+use std::env;
 
 mod concurrentgraph_utils_rayon;
-use concurrentgraph_utils_rayon::{min_selection_ep, prune_os, seed_propagation};
+use concurrentgraph_utils_rayon::{min_selection_ep, prune_os, par_seed_propagation};
 
 //mod graphmap_utils_rayon_v2;
 
 
-mod io_util;
-use io_util::read_from_file;
+use io_util::{debug_println, prelude::read_from_file};
 use rayon::ThreadPoolBuilder;
-
-// ~20 ms / 50k edges
-
-macro_rules! debug_println {
-    ($($arg:tt)*) => (if ::std::cfg!(debug_assertions) { ::std::println!($($arg)*); })
-}
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
@@ -123,14 +116,14 @@ fn main() {
 
     println!("{:?}", now.elapsed().as_millis());
 
-    let seeds = seed_propagation(t);
+    let seeds = par_seed_propagation(&t);
     debug_println!("duration: {:?}", now.elapsed());
 
     debug_println!("t: {num_it}");
     //assert_eq!(seeds.len(), graph.node_count()); //all node have a seed => no nodes are lost
     //println!("seeds: {seeds:?}");
 
-    let num_conn_comp: HashSet<_> = seeds.values().collect();
+    let num_conn_comp: DashSet<u32> = seeds.iter().map(|entry| *entry.value()).collect();
     debug_println!("#CC: {:?}", num_conn_comp.len());
     //println!("seeds: {:?}", num_conn_comp);
 
