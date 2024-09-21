@@ -8,20 +8,18 @@ use crate::NodeTrait;
 
 
 #[derive(Clone)]
-pub struct ConcurrentGraph<N: NodeTrait> {
+pub struct ConcurrentUnGraph<N: NodeTrait> {
     adj_list: DashMap<N, HashSet<N>>,  // Adjacency list without weights
     avg_edges: usize,
-    directed: bool
 }
 
-impl<N> ConcurrentGraph<N> 
+impl<N> ConcurrentUnGraph<N> 
 where N: Eq + NodeTrait {
     // Create a new graph
-    pub fn new(is_directed: bool) -> Self {
-        ConcurrentGraph {
+    pub fn new() -> Self {
+        ConcurrentUnGraph {
             adj_list: DashMap::new(),
             avg_edges: 1,
-            directed: is_directed
         }
     }
 
@@ -79,7 +77,6 @@ where N: Eq + NodeTrait {
     }
 
     pub fn outgoing_edges(&self, node: N) -> HashSet<N> {
-        assert_eq!(self.directed, true);
 
         match self.adj_list.get(&node) {
             Some(v) => v.clone(),
@@ -87,9 +84,8 @@ where N: Eq + NodeTrait {
         }
     }
 
+    /// Get all the incoming edges (as nodes) to a node. ~O(|V|)
     pub fn incoming_edges(&self, node: N) -> DashSet<N>{
-        assert_eq!(self.directed, true);
-
         // {n € N | node € adj_list[n]}
 
         let res: DashSet<N> = DashSet::new();
@@ -107,7 +103,7 @@ where N: Eq + NodeTrait {
     }
 
     fn is_directed(&self) -> bool {
-        self.directed
+        true
     }
 
     // Add an edge between two nodes; parallel edges not allowed, but self-loops are
@@ -123,17 +119,15 @@ where N: Eq + NodeTrait {
         }
         
         // Since it's an undirected graph, add (b -> a)
-        if !self.is_directed() {
-            match self.adj_list.get_mut(&b) {
-                Some(mut vec) => {vec.insert(a);},
-                None => {
-                    let mut new_neigh = HashSet::with_capacity(self.avg_edges);
-                    new_neigh.insert(a);
-                    self.adj_list.insert(b, new_neigh);
-                }
-
+        match self.adj_list.get_mut(&b) {
+            Some(mut vec) => {vec.insert(a);},
+            None => {
+                let mut new_neigh = HashSet::with_capacity(self.avg_edges);
+                new_neigh.insert(a);
+                self.adj_list.insert(b, new_neigh);
             }
         }
+        
     }
 
     /// Get neighbors of a node
@@ -154,42 +148,6 @@ where N: Eq + NodeTrait {
         match self.adj_list.get(&node_a) {
             Some(vec) => vec.contains(&node_b),
             None => false
-        }
-    }
-}
-
-
-
-
-pub type ConcurrentUnGraph<N> = ConcurrentGraph<N>;
-impl<N: NodeTrait> ConcurrentUnGraph<N> {
-    pub fn new_undirected() -> Self {
-        ConcurrentGraph::new(false)
-    }
-
-    pub fn with_capacity_undirected(num_nodes: usize, num_edges: usize) -> Self {
-        let avg_edges = num_edges / num_nodes; 
-
-        ConcurrentGraph{
-            adj_list: DashMap::with_capacity_and_shard_amount(num_nodes, num_nodes.next_power_of_two()), //DashMap::with_capacity(num_nodes),
-            avg_edges,
-            directed: false
-        }
-    }
-}
-pub type ConcurrentDiGraph<N> = ConcurrentGraph<N>;
-impl<N: NodeTrait> ConcurrentDiGraph<N> {
-    pub fn new() -> Self {
-        ConcurrentGraph::new(true)
-    }
-
-    pub fn with_capacity_directed(num_nodes: usize, num_edges: usize) -> Self {
-        let avg_edges = num_edges / num_nodes; 
-
-        ConcurrentGraph{
-            adj_list: DashMap::with_capacity_and_shard_amount(num_nodes, num_nodes.next_power_of_two()), //DashMap::with_capacity(num_nodes),
-            avg_edges,
-            directed: true
         }
     }
 }
