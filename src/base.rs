@@ -18,6 +18,7 @@ use rayon::ThreadPoolBuilder;
 
 
 fn main() {
+    let now = std::time::Instant::now();
     env::set_var("RUST_BACKTRACE", "1");
 
     type V = u32;
@@ -73,7 +74,7 @@ fn main() {
     }
 
     let edges: Vec<(V, V)> = edges_result.unwrap_or_default();
-    let graph = ConcurrentUnGraph::<V>::new_undirected();
+    let graph = ConcurrentUnGraph::new_undirected();
 
     for edge in edges {
         graph.add_edge(edge.0, edge.1);
@@ -84,15 +85,16 @@ fn main() {
 
 
 
-    let tree = ConcurrentDiGraph::<V>::new_directed();
+    //let tree = ConcurrentDiGraph::with_capacity_directed(graph.node_count(), graph.edge_count());
 
     let mut gt = graph.clone();
-    let mut t = tree.clone();
+    let mut t = ConcurrentDiGraph::with_capacity_directed(graph.node_count(), graph.edge_count());
+
 
     let mut num_it = 1;
 
-
-    let now = std::time::Instant::now();
+    println!("@file reading: {:?}", now.elapsed());
+    //let now = std::time::Instant::now();
 
     loop {
         //min selection
