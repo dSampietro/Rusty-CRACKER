@@ -11,23 +11,8 @@ concurrent_graph = {path = "./concurrent_graph"}
 dashmap = {version = "6.0.1", features = ["rayon"]}
 getopts = "0.2.21"
 io_util = {path = "./io_util"}
-#rand = "0.8.5"  #dev-dependencies
 rayon = "1.10.0"
-#rustworkx-core = "0.15.1"
 
-
-# ----------------- TEST -----------------
-#[[bin]]
-#name = "countingThreads"
-#path = "src/sketches/countingThreads.rs"
-
-#[[bin]]
-#name = "mvp"
-#path = "src/multipleMutex/mvp.rs"
-
-#[[bin]]
-#name = "cg"
-#path = "src/multipleMutex/cg.rs"
 
 [[bin]]
 name = "base"
@@ -40,36 +25,3 @@ path = "src/ep.rs"
 [[bin]]
 name = "epos"
 path = "src/epos.rs"
-
-
-# ----------------- PROD -----------------
-#[[bin]]
-#name = "naive"
-#path = "src/naive.rs"
-
-#par
-#[[bin]]
-#name = "par_main"
-#path = "src/par_main.rs"
-
-#[[bin]]
-#name = "par_main_ep"
-#path = "src/par_main_ep.rs"
-
-#[[bin]]
-#name = "par_main_epos"
-#path = "src/par_main_epos.rs"
-
-
-#rayon
-#[[bin]]
-#name = "rayon_main"
-#path = "src/sketches/oldVersion/rayon_main.rs"
-
-#[[bin]]
-#name = "rayon_main_ep"
-#path = "src/sketches/oldVersion/rayon_main_ep.rs"
-
-#[[bin]]
-#name = "rayon_main_epos"
-#path = "src/sketches/oldVersion/rayon_main_epos.rs"
