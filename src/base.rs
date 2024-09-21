@@ -74,7 +74,7 @@ fn main() {
     }
 
     let edges: Vec<(V, V)> = edges_result.unwrap_or_default();
-    let graph = ConcurrentUnGraph::new_undirected();
+    let graph = ConcurrentUnGraph::new();
 
     for edge in edges {
         graph.add_edge(edge.0, edge.1);
@@ -88,13 +88,14 @@ fn main() {
     //let tree = ConcurrentDiGraph::with_capacity_directed(graph.node_count(), graph.edge_count());
 
     let mut gt = graph.clone();
-    let mut t = ConcurrentDiGraph::with_capacity_directed(graph.node_count(), graph.edge_count());
+    let mut t = ConcurrentDiGraph::new();
 
 
     let mut num_it = 1;
 
     println!("@file reading: {:?}", now.elapsed());
-    //let now = std::time::Instant::now();
+    
+    let now = std::time::Instant::now();
 
     loop {
         //min selection
@@ -132,6 +133,4 @@ fn main() {
     debug_println!("#CC: {:?}", num_conn_comp.len());
     //println!("seeds: {:?}", num_conn_comp);
     println!("end: {:?}", now.elapsed());
-
-
 }

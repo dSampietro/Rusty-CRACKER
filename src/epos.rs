@@ -6,7 +6,7 @@ use getopts::Options;
 use std::env;
 
 mod concurrentgraph_utils_rayon;
-use concurrentgraph_utils_rayon::{min_selection_ep, prune_os, par_seed_propagation};
+use concurrentgraph_utils_rayon::{min_selection_ep_directed, par_seed_propagation, prune_os};
 
 //mod graphmap_utils_rayon_v2;
 
@@ -70,7 +70,7 @@ fn main() {
     }
 
     let edges: Vec<(V, V)> = edges_result.unwrap_or_default();
-    let graph = ConcurrentDiGraph::<V>::new_directed();
+    let graph = ConcurrentDiGraph::<V>::new();
 
 
     //TODO: parallelize graph creation
@@ -81,7 +81,7 @@ fn main() {
 
 
 
-    let tree = ConcurrentDiGraph::<V>::new_directed();
+    let tree = ConcurrentDiGraph::<V>::new();
 
     let mut gt = graph.clone();
     let mut t = tree.clone();
@@ -93,7 +93,7 @@ fn main() {
 
     loop {
         //min selection
-        let h: ConcurrentDiGraph<V> = min_selection_ep(&gt);
+        let h: ConcurrentDiGraph<V> = min_selection_ep_directed(&gt);
         //debug_println!("h_{:?} #edges: {:?}", num_it, gt.edge_count());
         debug_println!("@ min_selection_{num_it}: {:?}", now.elapsed());
 

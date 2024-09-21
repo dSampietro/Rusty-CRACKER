@@ -72,7 +72,7 @@ fn main() {
     }
 
     let edges: Vec<(V, V)> = edges_result.unwrap_or_default();
-    let graph = ConcurrentUnGraph::<V>::new_undirected();
+    let graph = ConcurrentUnGraph::new();
 
     for edge in edges {
         graph.add_edge(edge.0, edge.1);
@@ -83,7 +83,7 @@ fn main() {
 
 
 
-    let tree = ConcurrentDiGraph::<V>::new_directed();
+    let tree = ConcurrentDiGraph::<V>::new();
 
     let mut gt = graph.clone();
     let mut t = tree.clone();
