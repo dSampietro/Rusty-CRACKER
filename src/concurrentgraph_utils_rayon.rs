@@ -298,17 +298,28 @@ pub fn seed_propagation<V: NodeTrait + Debug>(tree: ConcurrentDiGraph<V>) -> Has
 
 //use seeds_map to memoize??
 pub fn par_seed_propagation<V: NodeTrait>(tree: &ConcurrentDiGraph<V>) -> DashMap<V, V> {
+    //assert_eq!(tree.edge_count(), tree.node_count()-1);     //pre condition
     let seeds_map = DashMap::with_capacity(tree.node_count());
 
-    tree.nodes().par_iter().for_each(|&n| {
-        let incoming = tree.incoming_edges(n);
+    let mut nodes = tree.nodes();
+    
+    /* 
+    sort to avoid tree traversal:
+    - roots have lower id than other nodes in tree 
+        - lower id  => affordable root traversal
+        - bigger id => take advantage of memoization
+    */
+    nodes.sort_unstable();  
+
+    nodes.par_iter().for_each(|&n| {
+        let incoming = tree.incoming_edges(n);  //tree property: 0 or 1
 
         if incoming.is_empty() {
             seeds_map.insert(n, n); //node is root
         }
         else {
             let node_father = &*incoming.iter().next().unwrap();    //safely unwrap: if empty, already handled before
-            if seeds_map.contains_key(node_father) {
+            if seeds_map.contains_key(node_father) {                    //already know father's root
                 let v = *seeds_map.get(node_father).unwrap();
                 seeds_map.insert(n, v);
             }
