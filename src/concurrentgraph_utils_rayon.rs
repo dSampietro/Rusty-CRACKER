@@ -78,21 +78,13 @@ pub fn min_selection_ep<N>(g: &ConcurrentUnGraph<N>) -> ConcurrentDiGraph<N>
 where
     N: NodeTrait + Eq + Send + Sync + Debug,
 {
-    let neighborhoods: DashMap<N, HashSet<N>> = g.get_neighborhoods();
+    let neighborhoods = g.get_neighborhoods();
     let v_mins: DashMap<N, N> = get_vmins(g);
 
     // create directed graph h
     let h: ConcurrentDiGraph<N> = ConcurrentDiGraph::new(); //::with_capacity(g.node_count(), g.edge_count());
 
-    //add edges
-    //let mut neighborhoods_entries: Vec<_> = neighborhoods.iter().collect();
-    
-    //why sort? 
-    //neighborhoods_entries.sort_by(|a, b| a.key().cmp(b.key()));
-
-    //can be par_iterated
-    neighborhoods
-    .par_iter()
+    neighborhoods.par_iter()
     .for_each(|entry|{
 
         let &&n = &entry.key();
@@ -143,21 +135,14 @@ pub fn min_selection_ep_directed<N>(g: &ConcurrentDiGraph<N>) -> ConcurrentDiGra
 where
     N: NodeTrait + Eq + Send + Sync + Debug,
 {
-    let neighborhoods: DashMap<N, HashSet<N>> = g.get_neighborhoods();
+    let neighborhoods = g.get_neighborhoods();
     let v_mins: DashMap<N, N> = get_vmins_directed(g);
 
     // create directed graph h
     let h: ConcurrentDiGraph<N> = ConcurrentDiGraph::new(); //::with_capacity(g.node_count(), g.edge_count());
 
-    //add edges
-    //let mut neighborhoods_entries: Vec<_> = neighborhoods.iter().collect();
-    
-    //why sort? 
-    //neighborhoods_entries.sort_by(|a, b| a.key().cmp(b.key()));
-
     //can be par_iterated
-    neighborhoods
-    .par_iter()
+    neighborhoods.par_iter()
     .for_each(|entry|{
 
         let &&n = &entry.key();
@@ -202,19 +187,13 @@ where
 
 
 
-/*fn get_outgoing_neighborhood<N: NodeTrait + Send + Sync>(
-    h: &ConcurrentDiGraph<N>,
-) -> DashMap<N, HashSet<N>> {
-    h.get_neighborhoods()
-}*/
-
 pub fn prune<N: NodeTrait + Send + Sync + Debug>(
     h: ConcurrentDiGraph<N>,
     tree: ConcurrentDiGraph<N>,
 ) -> (ConcurrentUnGraph<N>, ConcurrentDiGraph<N>) {
     //eprintln!("Pruning");
     //get outgoing neighborhoods
-    let outgoing_neighborhoods: DashMap<N, HashSet<N>> = h.get_neighborhoods();
+    let outgoing_neighborhoods = h.get_neighborhoods();
 
     let min_outgoing_neighborhoods = get_vmins_directed(&h);
 
@@ -284,7 +263,7 @@ pub fn prune_os<N: NodeTrait + Debug>(
     tree: ConcurrentDiGraph<N>,
 ) -> (ConcurrentDiGraph<N>, ConcurrentDiGraph<N>) {
     //get outgoing neighborhoods
-    let outgoing_neighborhoods: DashMap<N, HashSet<N>> = h.get_neighborhoods();
+    let outgoing_neighborhoods = h.get_neighborhoods();
 
     let min_outgoing_neighborhoods = get_vmins_directed(&h);
 
@@ -358,8 +337,8 @@ fn seed_propagation<V: NodeTrait + Debug>(tree: ConcurrentDiGraph<V>) -> HashMap
         incoming_edge.iter().for_each(|from| {
             //eprintln!("Node {:?}, edge {:?}", min_node, edge);
 
-            if seeds_map.contains_key(&from) {
-                let parent_seed = seeds_map.get(&from).unwrap();
+            if seeds_map.contains_key(from) {
+                let parent_seed = seeds_map.get(from).unwrap();
                 seeds_map.insert(min_node, *parent_seed);
             } else {
                 seeds_map.insert(min_node, *from);
@@ -398,9 +377,9 @@ pub fn par_seed_propagation<V: NodeTrait>(tree: &ConcurrentDiGraph<V>) -> DashMa
             seeds_map.insert(n, n); //node is root
         }
         else {
-            let node_father = &*incoming.iter().next().unwrap();    //safely unwrap: if empty, already handled before
-            if seeds_map.contains_key(node_father) {                    //already know father's root
-                let v = *seeds_map.get(node_father).unwrap();
+            let node_father = *incoming.iter().next().unwrap();        //safely unwrap: if empty, already handled before
+            if seeds_map.contains_key(&node_father) {                    //already know father's root
+                let v = *seeds_map.get(&node_father).unwrap();
                 seeds_map.insert(n, v);
             }
             else {
