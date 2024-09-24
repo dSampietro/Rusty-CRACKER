@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use dashmap::DashMap;
 use std::collections::HashSet;
 use rayon::prelude::*;
@@ -29,12 +28,12 @@ where N: Eq + NodeTrait {
             .collect()        
     }
 
-    pub fn get_incoming_neighborhoods(&self) -> DashMap<N, HashSet<N>> {
-        self.incoming.clone()
+    pub fn get_incoming_neighborhoods(&self) -> &DashMap<N, HashSet<N>> {
+        &self.incoming//.clone()
     }
 
-    pub fn get_neighborhoods(&self) -> DashMap<N, HashSet<N>> {
-        self.outgoing.clone()
+    pub fn get_neighborhoods(&self) -> &DashMap<N, HashSet<N>> {
+        &self.outgoing//.clone()
     }
 
     ///Get the closed neighbourhood (neighborhood + node) of every node
@@ -99,7 +98,7 @@ where N: Eq + NodeTrait {
         }
     }
 
-    fn is_directed(&self) -> bool {
+    pub fn is_directed(&self) -> bool {
         true
     }
 

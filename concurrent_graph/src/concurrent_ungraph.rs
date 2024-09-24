@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use dashmap::DashMap;
 use dashmap::DashSet;
 use std::collections::HashSet;
@@ -30,8 +29,8 @@ where N: Eq + NodeTrait {
             .collect()        
     }
 
-    pub fn get_neighborhoods(&self) -> DashMap<N, HashSet<N>> {
-        self.adj_list.clone()
+    pub fn get_neighborhoods(&self) -> &DashMap<N, HashSet<N>> {
+        &self.adj_list//.clone()
     }
 
     ///Get the closed neighbourhood (neighborhood + node) of every node
@@ -102,7 +101,7 @@ where N: Eq + NodeTrait {
         res
     }
 
-    fn is_directed(&self) -> bool {
+    pub fn is_directed(&self) -> bool {
         true
     }
 
