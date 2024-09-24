@@ -18,7 +18,6 @@ use rayon::ThreadPoolBuilder;
 
 
 fn main() {
-    let now = std::time::Instant::now();
     env::set_var("RUST_BACKTRACE", "1");
 
     type V = u32;
@@ -67,6 +66,8 @@ fn main() {
         return;
     }
 
+    let now = std::time::Instant::now();
+
     let edges_result = read_from_file::<V>(filename.unwrap().as_str());
     if edges_result.is_err() {
         println!("Error reading edges from file: {:?}", edges_result.err());
@@ -93,9 +94,9 @@ fn main() {
 
     let mut num_it = 1;
 
-    println!("@file reading: {:?}", now.elapsed());
-    
-    let now = std::time::Instant::now();
+    //println!("@file reading: {:?}", now.elapsed());
+
+    //let now = std::time::Instant::now();
 
     loop {
         //min selection
@@ -132,5 +133,5 @@ fn main() {
     let num_conn_comp: DashSet<u32> = seeds.iter().map(|entry| *entry.value()).collect();
     debug_println!("#CC: {:?}", num_conn_comp.len());
     //println!("seeds: {:?}", num_conn_comp);
-    println!("end: {:?}", now.elapsed());
+    //println!("end: {:?}", now.elapsed());
 }

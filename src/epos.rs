@@ -70,7 +70,7 @@ fn main() {
     }
 
     let edges: Vec<(V, V)> = edges_result.unwrap_or_default();
-    let graph = ConcurrentDiGraph::<V>::new();
+    let graph = ConcurrentDiGraph::new();
 
 
     //TODO: parallelize graph creation
@@ -81,7 +81,7 @@ fn main() {
 
 
 
-    let tree = ConcurrentDiGraph::<V>::new();
+    let tree = ConcurrentDiGraph::new();
 
     let mut gt = graph.clone();
     let mut t = tree.clone();
@@ -124,7 +124,7 @@ fn main() {
     //println!("seeds: {seeds:?}");
 
     let num_conn_comp: DashSet<u32> = seeds.iter().map(|entry| *entry.value()).collect();
-    debug_println!("#CC: {:?}", num_conn_comp.len());
+    //println!("#CC: {:?}", num_conn_comp.len());
     //println!("seeds: {:?}", num_conn_comp);
-    println!("end: {:?}", now.elapsed());
+    //println!("end: {:?}", now.elapsed());
 }
