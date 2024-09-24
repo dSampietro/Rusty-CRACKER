@@ -84,3 +84,14 @@ Dashmap scala bene sia all'aumentare di #thread che #chiavi.
 In particolare le performance sono ottimali quando #chiavi == #thread.
 
 Il bottleneck è rappresentato dunque dal Mutex su GraphMap che impedisce aggiunte/rimozioni parallele.
+
+
+# Confronto con NetworkX
+Una differenza tra le due versione è il tempo di lettura del file mtx. Bottleneck in python, molto più veloce in Rust.
+
+
+Altra differenza tra l'algoritmo e la funzione CC di NetworkX è l'approccio adottato nella generazione delle CC.
+
+Cracker ha un'approccio eager: le componenti connesse sono generate subito, mentre NetworkX ha un approccio lazy: le componenti sono accessibili dietro ad un generatore.
+
+Per un benchmark equo, il generatore risultante viene iterato completamente.
