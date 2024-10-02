@@ -28,8 +28,8 @@ Per testare gli algoritmi, sono stati selezioni diversi datasets, sia grafi real
 
 
 # Librerie
-Il progetto prevede l'implementazione multithreaded di un algoritmo per grafi. 
-Perciò le librerie usate sono state *rayon*, per gestire il parallelismo e *petgraph* per ottenere strutture e funzione per grafi.
+Il progetto prevede l'implementazione multithreaded di un algoritmo per grafi.
+Perciò le librerie usate sono state *rayon*, per gestire il parallelismo e *dashmap* per ottenere una hashmap thread-safe.
 
 # Schema di parallelismo
 Esistono diversi modi per gestire il multithreading in Rust: thread (nativi), Rayon e Tokio.
@@ -44,24 +44,14 @@ Inoltre *Rayon* offre la creazione di un ThreadPool globale di dimensione fissat
 
 
 # Strutture dati
-La libreria *petgraph* offre diversi modi per rappresentare un grafo. La principale è *Graph*. 
+Sebbene esista già la libreria *petgraph* adatta ad operazione su grafi, le strutture offerte da questa non sono pensate per un contesto parallelo. Pertanto si è creata una struttura adatta a questo caso. Le due strutture sono *ConcurrentDiGraph* e *ConcurrentUnGraph*, rispettivamente usate per rappresentare grafi orientati e non.
 
-Questa rappresenta i nodi tramite il loro indice ed un weight (corrisponde a dati aggiuntivi). L'inserimento di archi richiede di specificare gli index, mentre la rimozione di un nodo causa lo spostamento degli indici successivi. Ciò causa problemi nelle fasi dell'algoritmo in cui vengono rimossi dei nodi.
+I grafi sono rappresentati come liste di adiacenza, usando una dashmap alla base invece di una hasmap standard. Una hashmap standard infatti presenta un unico lock, mentre la dashmap presenta una struttura divisa in *shards*: a valori hash diversi, corrisponodono lock diversi. Ciò permette scritture parallele più efficienti.
 
-La scelta finale è ricaduta su *GraphMap*. A differenza della precedente si perde la possibilità di aggiungere dati aggiuntivi ai nodi, ma viene meno la necessità di tenere traccia degli indici: si può aggiungere un arco semplicemente specificando le label dei nodi. 
-
-
-
-
-## Altre strutture
-Una operazione frequente è l'inserimento/lettura da una *HashMap*. Invece di gestire esplicitamente la sincronizzazione, ho usato una *DashMap*. Tale struttura è zucchero sintattico per una *HashMap* con un *RwLock*, lock che permette lettori multipli ma un singolo scrittore.
-
-Inoltre data l'impossibilità di aggiungere dati ai nodi della *GraphMap*, il risultato della fase di Seed Propagation è salvato in una HashMap ({nodo: seed}).
 
 
 # Algoritmi
 La versione implementata è quella ottimazata con *Edge Pruning* e *Oblivious Seed*.
-
 
 Dato che OS restituisice un grafo orientato, i vicini di un nodo sono definiti come $NN_{G}(u) = \{v \vert (u -> v) \in G\}$
 
@@ -72,26 +62,20 @@ Negli accessi alle strutture indicizzate (Vec), Rust effettua dei [bound check](
 Inoltre per evitare/minimizzare riallocazioni, dove possibile, tutte le strutture sono state inizializzate con una capacità (stimata).
 
 
-
-
-
 *You cannot make software run faster. Ever. That’s not a thing. You can only make it do less work.*
 
 
-
 # Benchmark
-Dashmap scala bene sia all'aumentare di #thread che #chiavi.
-In particolare le performance sono ottimali quando #chiavi == #thread.
-
-Il bottleneck è rappresentato dunque dal Mutex su GraphMap che impedisce aggiunte/rimozioni parallele.
+I benchmark consistono in *N* esecuzioni degli algoritmi, e il risultato è il tempo medio delle esecuzioni
 
 
 # Confronto con NetworkX
-Una differenza tra le due versione è il tempo di lettura del file mtx. Bottleneck in python, molto più veloce in Rust.
+Una differenza tra le due versioni è il tempo di lettura del file mtx. Bottleneck in python, molto più veloce in Rust.
 
 
 Altra differenza tra l'algoritmo e la funzione CC di NetworkX è l'approccio adottato nella generazione delle CC.
 
-Cracker ha un'approccio eager: le componenti connesse sono generate subito, mentre NetworkX ha un approccio lazy: le componenti sono accessibili dietro ad un generatore.
+Cracker ha un'approccio eager: le componenti connesse sono generate subito, 
+mentre NetworkX ha un approccio lazy: le componenti sono restituite con un generatore.
 
 Per un benchmark equo, il generatore risultante viene iterato completamente.
