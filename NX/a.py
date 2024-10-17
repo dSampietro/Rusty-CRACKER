@@ -5,8 +5,7 @@ import time
 
 start = time.time()
 BASE_PATH = "../files"
-filename = f"{BASE_PATH}/syn/V2_syn_2M_10M.mtx"
-
+filename = f"{BASE_PATH}/bn-human-Jung2015_M87124670.mtx"
 
 #read graph
 a = fmm.mmread(filename)
