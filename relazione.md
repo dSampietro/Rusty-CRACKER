@@ -28,7 +28,6 @@ Per testare gli algoritmi, sono stati selezioni diversi datasets, sia grafi real
 
 
 # Librerie
-Il progetto prevede l'implementazione multithreaded di un algoritmo per grafi.
 Perciò le librerie usate sono state *rayon*, per gestire il parallelismo e *dashmap* per ottenere una hashmap thread-safe.
 
 # Schema di parallelismo
