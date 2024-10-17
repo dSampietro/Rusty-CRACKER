@@ -4,7 +4,6 @@ use rayon::prelude::*;
 
 use crate::NodeTrait;
 
-
 #[derive(Clone)]
 pub struct ConcurrentDiGraph<N: NodeTrait> {
     incoming: DashMap<N, HashSet<N>>,  // Adjacency list without weights
