@@ -245,9 +245,6 @@ pub fn prune<N: NodeTrait + Send + Sync + Debug>(
         }*/
     });
 
-    //let deactivated_nodes: Vec<N> = deactivated_nodes_mutex.into_inner().unwrap_or_default();
-    //deactivated_nodes.sort_unstable_by(|a, b| b.cmp(a));    //sort + reverse
-
 
     deactivated_nodes.iter().for_each(|deactivated| {
         //eprintln!("Removing node: {:?}", deactivated);
