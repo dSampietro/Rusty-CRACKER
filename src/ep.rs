@@ -79,14 +79,9 @@ fn main() {
         graph.add_edge(edge.1, edge.0);
 
     }
-    //let graph: UnGraphMap<V, ()> = UnGraphMap::from_edges(&edges);
-
-
-
-    let tree = ConcurrentDiGraph::<V>::new();
 
     let mut gt = graph.clone();
-    let mut t = tree.clone();
+    let mut t: ConcurrentDiGraph<V> = ConcurrentDiGraph::new();
 
     let mut num_it = 1;
 
