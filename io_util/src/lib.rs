@@ -1,4 +1,4 @@
-pub mod prelude{
+pub mod prelude {
     use std::{
         fmt::Debug,
         fs::File,
@@ -24,8 +24,7 @@ pub mod prelude{
     }
 
     fn parse_file<V: FromStr>(file: File) -> Vec<(V, V)>
-    where
-        <V as FromStr>::Err: Debug,
+    where <V as FromStr>::Err: Debug,
     {
         //let res = Vec::<(u8, u8)>::new();
         let reader = io::BufReader::new(file);
@@ -48,7 +47,6 @@ pub mod prelude{
             Ok(v) => v,
             Err(_) => 0
         };
-        //println!("{:?}", n_edges);
 
         let mut edges: Vec<(V, V)> = Vec::with_capacity(n_edges);
 

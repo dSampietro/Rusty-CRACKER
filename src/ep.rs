@@ -2,21 +2,17 @@ use concurrent_graph::{ConcurrentDiGraph, ConcurrentUnGraph};
 use dashmap::DashSet;
 use getopts::Options;
 
-//use petgraph::graphmap::{DiGraphMap, UnGraphMap};
 use std::env;
 
 mod concurrentgraph_utils_rayon;
 use concurrentgraph_utils_rayon::{min_selection_ep, par_seed_propagation, prune};
 
-//mod graphmap_utils_rayon_v2;
-
-
 use io_util::{debug_println, prelude::read_from_file};
 use rayon::ThreadPoolBuilder;
 
-// ~20 ms / 50k edges
 
 fn main() {
+    
     env::set_var("RUST_BACKTRACE", "1");
 
     type V = u32;
@@ -77,7 +73,6 @@ fn main() {
     for edge in edges {
         graph.add_edge(edge.0, edge.1);
         graph.add_edge(edge.1, edge.0);
-
     }
 
     let mut gt = graph.clone();

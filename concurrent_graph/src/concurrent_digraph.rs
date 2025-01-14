@@ -78,7 +78,7 @@ where N: Eq + NodeTrait {
     }
 
     pub fn edge_count(&self) -> usize {
-        self.outgoing.par_iter()
+        self.outgoing.par_iter()   
             .map(|entry| entry.value().len())
             .sum()
     }

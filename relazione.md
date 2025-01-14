@@ -25,6 +25,10 @@ Per testare gli algoritmi, sono stati selezioni diversi datasets, sia grafi real
 
 
 
+|file        | #CC
+| syn_50k_100k | 32(V)
+| syn_50k_500k | 1(x)[3] 
+
 
 
 # Librerie

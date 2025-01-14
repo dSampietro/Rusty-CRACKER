@@ -2,19 +2,13 @@ use concurrent_graph::{ConcurrentDiGraph, ConcurrentUnGraph};
 use dashmap::DashSet;
 use getopts::Options;
 
-//use petgraph::graphmap::{DiGraphMap, UnGraphMap};
 use std::env;
 
 mod concurrentgraph_utils_rayon;
 use concurrentgraph_utils_rayon::{min_selection_base, par_seed_propagation, prune};
 
-//mod graphmap_utils_rayon_v2;
-
-
 use io_util::{debug_println, prelude::read_from_file};
 use rayon::ThreadPoolBuilder;
-
-// ~20 ms / 50k edges
 
 
 fn main() {
@@ -80,23 +74,12 @@ fn main() {
     for edge in edges {
         graph.add_edge(edge.0, edge.1);
         graph.add_edge(edge.1, edge.0);
-
     }
-    //let graph: UnGraphMap<V, ()> = UnGraphMap::from_edges(&edges);
-
-
-
-    //let tree = ConcurrentDiGraph::with_capacity_directed(graph.node_count(), graph.edge_count());
-
     let mut gt = graph.clone();
     let mut t: ConcurrentDiGraph<V> = ConcurrentDiGraph::new();
 
 
     let mut num_it = 1;
-
-    //println!("@file reading: {:?}", now.elapsed());
-
-    //let now = std::time::Instant::now();
 
     loop {
         //min selection
@@ -117,7 +100,6 @@ fn main() {
         }
 
         num_it += 1;
-        //debug_println!("g_{:?} #edges: {:?}", num_it, gt.edge_count());
     }
 
     //println!("main loop: {:?}", now.elapsed());
@@ -132,6 +114,7 @@ fn main() {
 
     let num_conn_comp: DashSet<u32> = seeds.iter().map(|entry| *entry.value()).collect();
     debug_println!("#CC: {:?}", num_conn_comp.len());
+    debug_println!("end: {:?}", now.elapsed());
     //println!("seeds: {:?}", num_conn_comp);
     //println!("end: {:?}", now.elapsed());
 }

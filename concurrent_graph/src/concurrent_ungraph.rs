@@ -76,7 +76,6 @@ where N: Eq + NodeTrait {
     }
 
     pub fn outgoing_edges(&self, node: N) -> HashSet<N> {
-
         match self.adj_list.get(&node) {
             Some(v) => v.clone(),
             None => HashSet::new()

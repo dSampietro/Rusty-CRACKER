@@ -15,6 +15,7 @@ def calc_times_with_nThreads(prog: str, file: str, n_threads: List[int], n_runs 
             # Execute the command and capture the output
             result = subprocess.run([f"./release/{prog}", "--f", f"../files/{file}", "--num_thread", f"{n}"], capture_output=True, text=True)
             print(result)
+
             # Get the output
             time_output = result.stdout.strip()
             #print(f"Run {_}: {time_output}")
@@ -40,13 +41,13 @@ def calc_times_with_nThreads(prog: str, file: str, n_threads: List[int], n_runs 
 
 
 
-progs = [ "base", "ep", "epos"]
+progs = ["base", "ep", "epos"]
 
 name = "bn-human-Jung2015_M87124670"
 files = f"{name}.mtx"
 
 N_THREADS = [1, 2, 4, 8]
-N_RUNS = 3
+N_RUNS = 5
 
 info = pd.DataFrame()
 info["num_threads"] = N_THREADS
