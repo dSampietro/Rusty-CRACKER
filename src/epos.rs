@@ -2,14 +2,10 @@ use concurrent_graph::ConcurrentDiGraph;
 use dashmap::DashSet;
 use getopts::Options;
 
-//use petgraph::graphmap::{DiGraphMap, UnGraphMap};
 use std::env;
 
 mod concurrentgraph_utils_rayon;
 use concurrentgraph_utils_rayon::{min_selection_ep_directed, par_seed_propagation, prune_os};
-
-//mod graphmap_utils_rayon_v2;
-
 
 use io_util::{debug_println, prelude::read_from_file};
 use rayon::ThreadPoolBuilder;
@@ -80,11 +76,8 @@ fn main() {
     }
 
 
-
-    let tree = ConcurrentDiGraph::new();
-
     let mut gt = graph.clone();
-    let mut t = tree.clone();
+    let mut t = ConcurrentDiGraph::new();
 
     let mut num_it = 1;
 
