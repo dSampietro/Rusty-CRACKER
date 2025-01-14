@@ -1,20 +1,14 @@
-use concurrent_graph::{ConcurrentDiGraph, GraphTrait};
+use concurrent_graph::ConcurrentDiGraph;
 use dashmap::DashSet;
 use getopts::Options;
-use io_util::prelude::read_from_file;
 
 use std::env;
 
 mod concurrentgraph_utils_rayon;
-use concurrentgraph_utils_rayon::{min_selection_ep, par_seed_propagation, prune_os};
+use concurrentgraph_utils_rayon::{min_selection_ep_directed, par_seed_propagation, prune_os};
 
+use io_util::{debug_println, prelude::read_from_file};
 use rayon::ThreadPoolBuilder;
-
-// ~20 ms / 50k edges
-
-macro_rules! debug_println {
-    ($($arg:tt)*) => (if ::std::cfg!(debug_assertions) { ::std::println!($($arg)*); })
-}
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
@@ -72,7 +66,7 @@ fn main() {
     }
 
     let edges: Vec<(V, V)> = edges_result.unwrap_or_default();
-    let graph = ConcurrentDiGraph::<V>::new();
+    let graph = ConcurrentDiGraph::new();
 
 
     //TODO: parallelize graph creation
@@ -82,11 +76,8 @@ fn main() {
     }
 
 
-
-    let tree = ConcurrentDiGraph::<V>::new();
-
     let mut gt = graph.clone();
-    let mut t = tree.clone();
+    let mut t = ConcurrentDiGraph::new();
 
     let mut num_it = 1;
 
@@ -95,7 +86,7 @@ fn main() {
 
     loop {
         //min selection
-        let h: ConcurrentDiGraph<V> = min_selection_ep(&gt);
+        let h: ConcurrentDiGraph<V> = min_selection_ep_directed(&gt);
         //debug_println!("h_{:?} #edges: {:?}", num_it, gt.edge_count());
         debug_println!("@ min_selection_{num_it}: {:?}", now.elapsed());
 
@@ -125,12 +116,9 @@ fn main() {
     //assert_eq!(seeds.len(), graph.node_count()); //all node have a seed => no nodes are lost
     //println!("seeds: {seeds:?}");
 
-    //let num_conn_comp: HashSet<_> = seeds.values().collect();
     let num_conn_comp: DashSet<u32> = seeds.iter().map(|entry| *entry.value()).collect();
-    debug_println!("#CC: {:?}", num_conn_comp.len());
+    //println!("#CC: {:?}", num_conn_comp.len());
 
-    debug_println!("end: {:?}", now.elapsed());
     //println!("seeds: {:?}", num_conn_comp);
-
-
+    //println!("end: {:?}", now.elapsed());
 }

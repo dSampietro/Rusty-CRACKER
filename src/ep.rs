@@ -1,14 +1,13 @@
-use concurrent_graph::{ConcurrentDiGraph, ConcurrentUnGraph, GraphTrait};
+use concurrent_graph::{ConcurrentDiGraph, ConcurrentUnGraph};
 use dashmap::DashSet;
 use getopts::Options;
-use io_util::{debug_println, prelude::read_from_file};
 
-//use petgraph::graphmap::{DiGraphMap, UnGraphMap};
 use std::env;
 
 mod concurrentgraph_utils_rayon;
 use concurrentgraph_utils_rayon::{min_selection_ep, par_seed_propagation, prune};
 
+use io_util::{debug_println, prelude::read_from_file};
 use rayon::ThreadPoolBuilder;
 
 
@@ -69,21 +68,15 @@ fn main() {
     }
 
     let edges: Vec<(V, V)> = edges_result.unwrap_or_default();
-    let graph = ConcurrentUnGraph::<V>::new();
+    let graph = ConcurrentUnGraph::new();
 
     for edge in edges {
         graph.add_edge(edge.0, edge.1);
         graph.add_edge(edge.1, edge.0);
-
     }
-    //let graph: UnGraphMap<V, ()> = UnGraphMap::from_edges(&edges);
-
-
-
-    let tree = ConcurrentDiGraph::<V>::new();
 
     let mut gt = graph.clone();
-    let mut t = tree.clone();
+    let mut t: ConcurrentDiGraph<V> = ConcurrentDiGraph::new();
 
     let mut num_it = 1;
 
@@ -122,11 +115,8 @@ fn main() {
     //assert_eq!(seeds.len(), graph.node_count()); //all node have a seed => no nodes are lost
     //println!("seeds: {seeds:?}");
 
-    //let num_conn_comp: HashSet<_> = seeds.values().collect();
-    //debug_println!("#CC: {:?}", num_conn_comp.len());
     let num_conn_comp: DashSet<u32> = seeds.iter().map(|entry| *entry.value()).collect();
-    debug_println!("#CC: {:?}", num_conn_comp);
-
+    debug_println!("#CC: {:?}", num_conn_comp.len());
     //println!("seeds: {:?}", num_conn_comp);
 
 }

@@ -3,11 +3,6 @@ name = "concurrent_graph"
 version = "0.1.0"
 edition = "2021"
 
-[[test]]
-name="unit_test"
-path="tests/unit_test.rs"
-
 [dependencies]
 dashmap = {version = "6.0.1", features = ["rayon"]}
 rayon = "1.10.0"
-
